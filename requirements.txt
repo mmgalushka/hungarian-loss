@@ -6,4 +6,4 @@ flake8
 pytest
 pytest-cov
 setuptools
-tensorflow==2.5.0
+tensorflow>=2.5.0
