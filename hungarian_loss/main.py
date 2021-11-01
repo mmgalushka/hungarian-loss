@@ -7,7 +7,7 @@ import tensorflow as tf
 
 def euclidean_distance(a, b):  # pylint: disable=invalid-name
     """
-        dist = sqrt((a - b)^2) = sqrt(a^2 - 2ab.T - b^2)
+    dist = sqrt((a - b)^2) = sqrt(a^2 - 2ab.T - b^2)
     """
     # Example of input data, both tensors have shape=(1, 2, 4):
     #
@@ -26,12 +26,14 @@ def euclidean_distance(a, b):  # pylint: disable=invalid-name
     # Batch size: N = 1
 
     a2 = tf.reshape(  # pylint: disable=invalid-name
-        tf.reduce_sum(tf.square(a), axis=2), [N, -1, 1])
+        tf.reduce_sum(tf.square(a), axis=2), [N, -1, 1]
+    )
     # a2 = [[[ 30.]
     #        [175.]]]
 
     b2 = tf.reshape(  # pylint: disable=invalid-name
-        tf.reduce_sum(tf.square(b), axis=2), [N, 1, -1])
+        tf.reduce_sum(tf.square(b), axis=2), [N, 1, -1]
+    )
     # b2 = [[[4. 16.]]]
 
     dist = tf.sqrt(a2 - 2 * tf.matmul(a, tf.transpose(b, perm=[0, 2, 1])) + b2)
@@ -48,8 +50,7 @@ def pairs_mesh(n):  # pylint: disable=invalid-name
     # r = [0 1]
 
     a = tf.expand_dims(  # pylint: disable=invalid-name
-        tf.tile(tf.expand_dims(r, 1), [1, tf.shape(r)[0]]),
-        2
+        tf.tile(tf.expand_dims(r, 1), [1, tf.shape(r)[0]]), 2
     )
     # a = [[[0]
     #       [0]]
@@ -57,8 +58,7 @@ def pairs_mesh(n):  # pylint: disable=invalid-name
     #       [1]]]
 
     b = tf.expand_dims(  # pylint: disable=invalid-name
-        tf.tile(tf.expand_dims(r, 0), [tf.shape(r)[0], 1]),
-        2
+        tf.tile(tf.expand_dims(r, 0), [tf.shape(r)[0], 1]), 2
     )
     # b= [[[0]
     #      [1]]
@@ -101,7 +101,8 @@ def hungarian_mask(cost):
         # pair = [0 1] -> [0 0] -> [1 1] -> [1 0]
 
         activation = tf.sparse.to_dense(
-            tf.SparseTensor(indices=pair, values=[1], dense_shape=[n, n]))
+            tf.SparseTensor(indices=pair, values=[1], dense_shape=[n, n])
+        )
         # activation = [0 1] -> [1 0] -> [0 0] -> [0 0]
         #              [0 0]    [0 0]    [0 1]    [1 0]
 
@@ -110,26 +111,30 @@ def hungarian_mask(cost):
         #         [0 0]    [0 0]    [0 1]    [1 0]
 
         row = tf.reduce_sum(probe, axis=0)
-        row = (tf.where(tf.greater(row, 1)))
+        row = tf.where(tf.greater(row, 1))
         row = tf.equal(tf.size(row), 0)
         # row = True -> True -> False -> True
 
         col = tf.reduce_sum(probe, axis=1)
-        col = (tf.where(tf.greater(col, 1)))
+        col = tf.where(tf.greater(col, 1))
         col = tf.equal(tf.size(col), 0)
         # col = True -> False -> True -> True
 
         conjunction = tf.math.logical_and(row, col)
         # conjunction = True -> False -> False -> True
 
-        return tf.cond(conjunction, lambda: [i + 1, pairs, probe],
-                       lambda: [i + 1, pairs, mask])
+        return tf.cond(
+            conjunction,
+            lambda: [i + 1, pairs, probe],
+            lambda: [i + 1, pairs, mask],
+        )
 
     def condition(i, pairs, mask):  # pylint: disable=unused-argument
         return tf.less_equal(i, len(pairs) - 1)
 
     output = tf.while_loop(
-        condition, body, [0, pairs, tf.zeros((n, n), tf.int32)])
+        condition, body, [0, pairs, tf.zeros((n, n), tf.int32)]
+    )
     # output = [
     #   4,
     #   [[0, 1],

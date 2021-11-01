@@ -23,7 +23,7 @@ setuptools.setup(
         "Bug Tracker": "https://github.com/mmgalushka/hungarian-loss/issues",
     },
     classifiers=[
-        'Intended Audience :: Developers',
+        "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 3",
@@ -32,5 +32,5 @@ setuptools.setup(
     packages=setuptools.find_packages(where=".", exclude=["tests"]),
     python_requires=">=3.6",
     use_scm_version=True,
-    setup_requires=['setuptools_scm']
+    setup_requires=["setuptools_scm"],
 )
