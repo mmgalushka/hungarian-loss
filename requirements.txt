@@ -3,8 +3,8 @@ build
 twine
 black
 flake8
-pre-commit
 pytest
 pytest-cov
 setuptools
+pre-commit
 tensorflow==2.5.0

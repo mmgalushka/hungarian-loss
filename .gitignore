@@ -30,3 +30,4 @@
 !CONTRIBUTING.md
 !requirements.txt
 !pytest.ini
+!.pre-commit-config.yaml

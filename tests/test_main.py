@@ -16,16 +16,12 @@ EPS = tf.constant(0.001)
 def test_euclidean_distance():
     """Tests the euclidean_distance function."""
     a = tf.constant(
-        [
-            [[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]]
-        ]  # pylint: disable=invalid-name
-    )
+        [[[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]]]
+    )  # pylint: disable=invalid-name
 
     b = tf.constant(
-        [
-            [[1.0, 1.0, 1.0, 1.0], [2.0, 2.0, 2.0, 2.0]]
-        ]  # pylint: disable=invalid-name
-    )
+        [[[1.0, 1.0, 1.0, 1.0], [2.0, 2.0, 2.0, 2.0]]]
+    )  # pylint: disable=invalid-name
 
     actual = euclidean_distance(a, b)
     expected = tf.constant([[[3.7416575, 2.4494898], [11.224972, 9.273619]]])
@@ -59,16 +55,12 @@ def test_hungarian_mask():
 def test_hungarian_loss():
     """Tests the euclidean_distance function."""
     a = tf.constant(
-        [
-            [[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]]
-        ]  # pylint: disable=invalid-name
-    )
+        [[[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]]]
+    )  # pylint: disable=invalid-name
 
     b = tf.constant(
-        [
-            [[1.0, 1.0, 1.0, 1.0], [2.0, 2.0, 2.0, 2.0]]
-        ]  # pylint: disable=invalid-name
-    )
+        [[[1.0, 1.0, 1.0, 1.0], [2.0, 2.0, 2.0, 2.0]]]
+    )  # pylint: disable=invalid-name
 
     actual = hungarian_loss(a, b)
     expected = tf.constant([13.674461])
