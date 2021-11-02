@@ -1,9 +1,10 @@
 wheel
 build
 twine
-pylint
+black
 flake8
 pytest
 pytest-cov
 setuptools
+pre-commit
 tensorflow==2.5.0
