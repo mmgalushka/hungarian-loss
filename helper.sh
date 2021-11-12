@@ -38,6 +38,11 @@ action_init(){
     pre-commit autoupdate
 }
 
+action_run(){
+    source .venv/bin/activate
+    python main.py
+}
+
 action_test(){
     source .venv/bin/activate
 
@@ -77,6 +82,9 @@ action_build(){
 case $1 in
     init)
         action_init
+    ;;
+    run)
+        action_run
     ;;
     test)
         action_test ${@:2}
