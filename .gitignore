@@ -20,11 +20,16 @@
 !tests/**/
 !tests/**/*.py
 
+# Except documentation
+
+!docs/
+!docs/**/
+!docs/**/*.png
+
 # Except main artifacts
 
 !helper.sh
 !LICENSE
-!main.py
 !setup.py
 !README.md
 !CONTRIBUTING.md

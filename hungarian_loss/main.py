@@ -147,18 +147,18 @@ def hungarian_mask(cost):
     return output[2]
 
 
-def hungarian_loss(y_true, y_pred):
+def ga_loss(y_true, y_pred):
     """Computes the Hungarian loss"""
     v_true = tf.cast(y_true, tf.float32)
     v_pred = tf.cast(y_pred, tf.float32)
 
-    # v_true = [
-    #   [[1. 1. 1. 1.]
-    #    [3. 3. 3. 3.]]
+    # y_true = [
+    #   [[1. 2. 3. 4.]
+    #    [5. 6. 7. 8.]]
     # ]
     #
-    # v_pred = [
-    #   [[4. 4. 4. 4.]
+    # y_pred = [
+    #   [[1. 1. 1. 1.]
     #    [2. 2. 2. 2.]]
     # ]
 
@@ -169,6 +169,7 @@ def hungarian_loss(y_true, y_pred):
     mask = tf.cast(tf.map_fn(hungarian_mask, dist, tf.int32), tf.float32)
     # mask = [[[0. 1.]
     #          [1. 0.]]]
+    print(mask)
 
     loss = tf.reduce_sum(tf.math.multiply(dist, mask), (1, 2))
     # loss = [13.674461]
