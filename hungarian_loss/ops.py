@@ -3,8 +3,8 @@ A collection of supporting operations.
 """
 import tensorflow as tf
 
-ZERO = tf.constant(0, tf.float16)
-ONE = tf.constant(1, tf.float16)
+from hungarian_loss import ZERO
+
 
 def count_zeros_in_rows(zeros_mask: tf.Tensor) -> tf.Tensor:
     """Counts a number of zero-values in each row using a zeros'-mask.
@@ -18,24 +18,26 @@ def count_zeros_in_rows(zeros_mask: tf.Tensor) -> tf.Tensor:
         >>>       [ True, True, True]]]
         >>> )
         >>> count_zeros_in_rows(zeros_mask)
-        
+
         >>>  tf.Tensor(
         >>>    [[1.]
         >>>    [2.]
         >>>    [3.]], shape=(3, 1), dtype=float16)
     Args:
-        zeros_mask: 
+        zeros_mask:
             A 3D boolean tensor mask [batch, rows, columns] for
             highlighting zero cells. The `True` value indicates
             that the cell in the original matrix is 0 and `False`
             otherwise.
-        
+
     Returns:
         A 2D tensor representing zeros count in each row.
     """
-    return tf.reshape(tf.reduce_sum(
-        tf.cast(tf.equal(zeros_mask, True), dtype=tf.float16), axis=2),
-        (-1,1)
+    return tf.reshape(
+        tf.reduce_sum(
+            tf.cast(tf.equal(zeros_mask, True), dtype=tf.float16), axis=2
+        ),
+        (-1, 1),
     )
 
 
@@ -51,22 +53,23 @@ def count_zeros_in_cols(zeros_mask: tf.Tensor) -> tf.Tensor:
         >>>       [ True, True, True]]]
         >>> )
         >>> count_zeros_in_cols(zeros_mask)
-        
+
         >>> tf.Tensor([[3. 2. 1.]], shape=(1, 3), dtype=float16)
 
     Args:
-        zeros_mask: 
+        zeros_mask:
             A 3D boolean tensor mask [batch, rows, columns] for
             highlighting zero cells. The `True` value indicates
             that the cell in the original matrix is 0 and `False`
             otherwise.
-        
+
     Returns:
         A 2D tensor representing zeros count in each column.
     """
     return tf.reduce_sum(
-        tf.cast(tf.equal(zeros_mask, True), dtype=tf.float16), axis=1) 
- 
+        tf.cast(tf.equal(zeros_mask, True), dtype=tf.float16), axis=1
+    )
+
 
 def get_row_mask_with_min_zeros(zeros_mask: tf.Tensor) -> tf.Tensor:
     """Returns a row mask with minimum number of zeros.
@@ -83,7 +86,7 @@ def get_row_mask_with_min_zeros(zeros_mask: tf.Tensor) -> tf.Tensor:
         >>>       [ True, True, True]]]
         >>> )
         >>> get_row_mask_with_min_zeros(zeros_mask)
-        
+
         >>> tf.Tensor(
         >>>     [[ True]
         >>>      [False]
@@ -96,19 +99,19 @@ def get_row_mask_with_min_zeros(zeros_mask: tf.Tensor) -> tf.Tensor:
         >>>       [ True, True, True]]]
         >>> )
         >>> get_row_mask_with_min_zeros(zeros_mask)
-        
+
         >>> tf.Tensor(
         >>>     [[False]
         >>>      [ True]
         >>>      [False]], shape=(3, 1), dtype=bool)
 
     Args:
-        zeros_mask: 
+        zeros_mask:
             A 3D boolean tensor mask [batch, rows, columns] for
             highlighting zero cells. The `True` value indicates
             that the cell in the original matrix is 0 and `False`
             otherwise.
-        
+
     Returns:
         A 2D tensor represents a row mask with a minimum number of zeros.
     """
@@ -120,6 +123,7 @@ def get_row_mask_with_min_zeros(zeros_mask: tf.Tensor) -> tf.Tensor:
         tf.argsort(tf.argsort(counts, 0, direction="ASCENDING"), 0), 0
     )
 
+
 def get_row_mask_with_max_zeros(zeros_mask: tf.Tensor) -> tf.Tensor:
     """Returns a row mask with maximum number of zeros.
 
@@ -130,18 +134,18 @@ def get_row_mask_with_max_zeros(zeros_mask: tf.Tensor) -> tf.Tensor:
         >>>       [ True, True, True]]]
         >>> )
         >>> get_row_mask_with_max_zeros(zeros_mask)
-        
+
         >>> tf.Tensor(
         >>>     [[False]
         >>>      [False]
         >>>      [ True]], shape=(3, 1), dtype=bool)
     Args:
-        zeros_mask: 
+        zeros_mask:
             A 3D boolean tensor mask [batch, rows, columns] for
             highlighting zero cells. The `True` value indicates
             that the cell in the original matrix is 0 and `False`
             otherwise.
-        
+
     Returns:
         A 2D tensor represents a row mask with a maximum number of zeros.
     """
@@ -163,7 +167,7 @@ def get_col_mask_with_min_zeros(zeros_mask) -> tf.Tensor:
         >>>       [ True, True, True]]]
         >>> )
         >>> get_col_mask_with_min_zeros(zeros_mask)
-        
+
         >>> tf.Tensor([[False False  True]], shape=(1, 3), dtype=bool)
 
         2. Example without zeros in one column.
@@ -173,16 +177,16 @@ def get_col_mask_with_min_zeros(zeros_mask) -> tf.Tensor:
         >>>       [ True,  True, False]]]
         >>> )
         >>> get_col_mask_with_min_zeros(zeros_mask)
-        
+
         >>> tf.Tensor([[False True  False]], shape=(1, 3), dtype=bool)
 
     Args:
-        zeros_mask: 
+        zeros_mask:
             A 3D boolean tensor mask [batch, rows, columns] for
             highlighting zero cells. The `True` value indicates
             that the cell in the original matrix is 0 and `False`
             otherwise.
-        
+
     Returns:
         A 2D tensor represents a column mask with a minimum number of zeros.
     """
@@ -194,6 +198,7 @@ def get_col_mask_with_min_zeros(zeros_mask) -> tf.Tensor:
         tf.argsort(tf.argsort(counts, 1, direction="ASCENDING"), 1), 0
     )
 
+
 def get_col_mask_with_max_zeros(zeros_mask: tf.Tensor) -> tf.Tensor:
     """Returns a column mask with maximum number of zeros.
 
@@ -204,16 +209,16 @@ def get_col_mask_with_max_zeros(zeros_mask: tf.Tensor) -> tf.Tensor:
         >>>       [ True, True, True]]]
         >>> )
         >>> get_col_mask_with_max_zeros(zeros_mask)
-        
+
         >>> tf.Tensor([[ True False False]], shape=(1, 3), dtype=bool)
     Args:
-        zeros_mask: 
+        zeros_mask:
             A 3D boolean tensor mask [batch, rows, columns] for
             highlighting zero cells. The `True` value indicates
             that the cell in the original matrix is 0 and `False`
             otherwise.
         tf.Tensor([[ True False False]], shape=(1, 3), dtype=bool)
-        
+
     Returns:
         A 2D tensor represents a column mask with a maximum number of zeros.
     """
@@ -240,7 +245,7 @@ def expand_item_mask(item_mask: tf.Tensor) -> tf.Tensor:
         >>>     [[[ True  True  True]
         >>>       [False False False]
         >>>       [False False False]]], shape=(1, 3, 3), dtype=bool)
-        
+
         2. This example of expanding column mask.
         >>> col_mask = tf.constant(
         >>>     [[ True, False, False]]]
@@ -253,10 +258,10 @@ def expand_item_mask(item_mask: tf.Tensor) -> tf.Tensor:
         >>>       [ True False False]]], shape=(1, 3, 3), dtype=bool)
 
     Args:
-        item_mask: 
+        item_mask:
             A 2D boolean tensor mask [batch, rows|columns] for
             selected row or column.
-        
+
     Returns:
         A 3D tensor for the expanded row ore column.
     """

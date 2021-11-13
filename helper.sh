@@ -67,8 +67,7 @@ action_test(){
 
 action_prep(){
     source .venv/bin/activate
-    # pre-commit run --all-files
-    python main.py
+    pre-commit run --all-files
 }
 
 action_build(){
