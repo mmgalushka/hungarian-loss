@@ -161,8 +161,7 @@ def scratch_matrix(matrix: tf.Tensor) -> tf.Tensor:
 def is_optimal_assignment(
     scratched_rows_mask: tf.Tensor, scratched_cols_mask: tf.Tensor
 ) -> tf.Tensor:
-    """Test if we can achieve the optimal assignment using scratched
-    rows and columns masks.
+    """Test if we can achieve the optimal assignment.
 
     We can achieve the optimal assignment if the combined number of
     scratched columns and rows equals to the matrix dimensions (since
@@ -211,6 +210,7 @@ def is_optimal_assignment(
 
 def shift_zeros(matrix, scratched_rows_mask, scratched_cols_mask):
     """Shifts zeros in not optimal mask.
+
     Example:
 
         Optimal assignment:
@@ -302,3 +302,54 @@ def shift_zeros(matrix, scratched_rows_mask, scratched_cols_mask):
         scratched_rows_mask,
         scratched_cols_mask,
     )
+
+
+def reduce_matrix(matrix):
+    """Reduce matrix suitable to perform the optimal assignment.
+
+    Example:
+        >>> matrix = tf.constant(
+        >>>    [[[ 30., 25., 10.],
+        >>>      [ 15., 10., 20.],
+        >>>      [ 25., 20., 15.]]], tf.float16
+        >>> )
+        >>> reduce_matrix(matrix)
+
+    """
+
+    def body(matrix, scratched_rows_mask, scratched_cols_mask):
+        new_matrix = reduce_rows(matrix)
+        new_matrix = reduce_cols(new_matrix)
+        scratched_rows_mask, scratched_cols_mask = scratch_matrix(new_matrix)
+
+        return tf.cond(
+            is_optimal_assignment(scratched_rows_mask, scratched_cols_mask),
+            true_fn=lambda: [
+                new_matrix,
+                scratched_rows_mask,
+                scratched_cols_mask,
+            ],
+            false_fn=lambda: shift_zeros(
+                new_matrix, scratched_rows_mask, scratched_cols_mask
+            ),
+        )
+
+    def condition(
+        matrix, scratched_rows_mask, scratched_cols_mask
+    ):  # pylint: disable=unused-argument
+        return tf.logical_not(
+            is_optimal_assignment(scratched_rows_mask, scratched_cols_mask)
+        )
+
+    _, num_of_rows, num_of_cols = matrix.shape
+    reduced_matrix, _, _ = tf.while_loop(
+        condition,
+        body,
+        [
+            matrix,
+            tf.zeros((num_of_rows, 1), tf.bool),
+            tf.zeros((1, num_of_cols), tf.bool),
+        ],
+    )
+
+    return reduced_matrix

@@ -10,13 +10,15 @@ from hungarian_loss.steps import (
     scratch_matrix,
     is_optimal_assignment,
     shift_zeros,
+    reduce_matrix,
 )
 
 
 def test_reduce_rows():
     """Tests the `reduce_rows` function."""
     matrix = tf.constant(
-        [[[30.0, 25.0, 10.0], [15.0, 10.0, 20.0], [25.0, 20.0, 15.0]]]
+        [[[30.0, 25.0, 10.0], [15.0, 10.0, 20.0], [25.0, 20.0, 15.0]]],
+        tf.float16,
     )
     actual = reduce_rows(matrix)
     expected = tf.constant(
@@ -28,7 +30,8 @@ def test_reduce_rows():
 def test_reduce_cols():
     """Tests the `reduce_cols` function."""
     matrix = tf.constant(
-        [[[30.0, 25.0, 10.0], [15.0, 10.0, 20.0], [25.0, 20.0, 15.0]]]
+        [[[30.0, 25.0, 10.0], [15.0, 10.0, 20.0], [25.0, 20.0, 15.0]]],
+        tf.float16,
     )
     actual = reduce_cols(matrix)
     expected = tf.constant(
@@ -39,13 +42,12 @@ def test_reduce_cols():
 
 def test_scratch_matrix():
     """Tests the `scratch_matrix` function."""
-    matrix = tf.Variable(
-        [[[15.0, 15.0, 0.0], [0.0, 0.0, 10.0], [5.0, 5.0, 0.0]]],
-        dtype=tf.float16,
+    matrix = tf.constant(
+        [[[15.0, 15.0, 0.0], [0.0, 0.0, 10.0], [5.0, 5.0, 0.0]]], tf.float16
     )
     actual_row_mask, actual_col_mask = scratch_matrix(matrix)
     expected_row_mask = tf.constant([[False], [True], [False]], tf.bool)
-    expected_col_mask = tf.constant([[False, False, True]])
+    expected_col_mask = tf.constant([[False, False, True]], tf.bool)
     assert tf.reduce_all(tf.equal(actual_row_mask, expected_row_mask))
     assert tf.reduce_all(tf.equal(actual_col_mask, expected_col_mask))
 
@@ -91,3 +93,16 @@ def test_shift_zeros():
     assert tf.reduce_all(
         tf.equal(actual_scratched_cols_mask, expected_scratched_cols_mask)
     )
+
+
+def test_reduce_matrix():
+    """Tests the `reduce_matrix` function."""
+    matrix = tf.constant(
+        [[[30.0, 25.0, 10.0], [15.0, 10.0, 20.0], [25.0, 20.0, 15.0]]],
+        tf.float16,
+    )
+    actual_matrix = reduce_matrix(matrix)
+    expected_matrix = tf.constant(
+        [[[10.0, 10.0, 0.0], [0.0, 0.0, 15.0], [0.0, 0.0, 0.0]]], tf.float16
+    )
+    assert tf.reduce_all(tf.equal(actual_matrix, expected_matrix))
