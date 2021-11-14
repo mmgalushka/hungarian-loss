@@ -4,7 +4,7 @@ Steps for computing Hungarian loss.
 
 import tensorflow as tf
 
-from . import ZERO
+from . import ZERO, ONE
 from .ops import (
     count_zeros_in_rows,
     count_zeros_in_cols,
@@ -32,7 +32,7 @@ def reduce_rows(matrix: tf.Tensor) -> tf.Tensor:
 
     Args:
         matrix:
-            The 3D [batch, rows, columns] of floats to reduce.
+            The 3D-tensor [batch, rows, columns] of floats to reduce.
 
     Returns:
         A new tensor with reduced values of the same shape as
@@ -46,7 +46,7 @@ def reduce_rows(matrix: tf.Tensor) -> tf.Tensor:
     )
 
 
-def reduce_cols(matrix):
+def reduce_cols(matrix: tf.Tensor) -> tf.Tensor:
     """Subtracts the minimum value from each column.
 
     Example:
@@ -64,7 +64,7 @@ def reduce_cols(matrix):
 
     Args:
         matrix:
-            The 3D [batch, rows, columns] of floats to reduce.
+            The 3D-tensor [batch, rows, columns] of floats to reduce.
 
     Returns:
         A new tensor with reduced values of the same shape as
@@ -75,7 +75,7 @@ def reduce_cols(matrix):
     )
 
 
-def scratch_matrix(matrix):
+def scratch_matrix(matrix: tf.Tensor) -> tf.Tensor:
     """Creates the mask for rows and columns which are covering all
     zeros in the matrix.
 
@@ -96,14 +96,14 @@ def scratch_matrix(matrix):
 
     Args:
         matrix:
-            The 3D [batch, rows, columns] of floats to scrarch.
+            The 3D-tensor [batch, rows, columns] of floats to scrarch.
 
     Returns:
         scratched_rows_mask:
-            The 2D row mask, where `True` values indicates the
+            The 2D-tensor row mask, where `True` values indicates the
             scratched rows and `False` intact rows accordingly.
         scratched_cols_mask:
-            The 2D column mask, where `True` values indicates the
+            The 2D-tensor column mask, where `True` values indicates the
             scratched columns and `False` intact columns accordingly.
     """
 
@@ -156,3 +156,149 @@ def scratch_matrix(matrix):
     )
 
     return scratched_rows_mask, scratched_cols_mask
+
+
+def is_optimal_assignment(
+    scratched_rows_mask: tf.Tensor, scratched_cols_mask: tf.Tensor
+) -> tf.Tensor:
+    """Test if we can achieve the optimal assignment using scratched
+    rows and columns masks.
+
+    We can achieve the optimal assignment if the combined number of
+    scratched columns and rows equals to the matrix dimensions (since
+    matrix is square, dimension side does not matter.)
+
+    Example:
+
+        Optimal assignment:
+        >>> scratched_rows_mask = tf.constant(
+        >>>    [[False], [True], [False]], tf.bool)
+        >>> scratched_cols_mask = tf.constant(
+        >>>    [[True, False, True]])
+        >>> is_optimal_assignment(scratched_rows_mask, scratched_cols_mask)
+
+        >>> tf.Tensor(True, shape=(), dtype=bool)
+
+        Not optimal assignment:
+        >>> scratched_rows_mask = tf.constant(
+        >>>    [[False], [True], [False]], tf.bool)
+        >>> scratched_cols_mask = tf.constant(
+        >>>    [[True, False, True]])
+        >>> is_optimal_assignment(scratched_rows_mask, scratched_cols_mask)
+
+        >>> tf.Tensor(False, shape=(), dtype=bool)
+
+    Args:
+        scratched_rows_mask:
+            The 2D-tensor row mask, where `True` values indicates the
+            scratched rows and `False` intact rows accordingly.
+        scratched_cols_mask:
+            The 2D-tensor column mask, where `True` values indicates the
+            scratched columns and `False` intact columns accordingly.
+
+    Returns:
+        The boolean tensor, where `True` indicates the optimal assignment
+        and `False` otherwise.
+    """
+    assert scratched_rows_mask.shape[0] == scratched_cols_mask.shape[1]
+    n = scratched_rows_mask.shape[0]
+    number_of_lines_covering_zeros = tf.add(
+        tf.reduce_sum(tf.cast(scratched_rows_mask, tf.float16)),
+        tf.reduce_sum(tf.cast(scratched_cols_mask, tf.float16)),
+    )
+    return tf.equal(n, number_of_lines_covering_zeros)
+
+
+def shift_zeros(matrix, scratched_rows_mask, scratched_cols_mask):
+    """Shifts zeros in not optimal mask.
+    Example:
+
+        Optimal assignment:
+        >>> matrix = tf.constant(
+        >>>    [[[ 30., 25., 10.],
+        >>>      [ 15., 10., 20.],
+        >>>      [ 25., 20., 15.]]], tf.float16
+        >>> )
+        >>> scratched_rows_mask = tf.constant(
+        >>>    [[False], [True], [False]], tf.bool)
+        >>> scratched_cols_mask = tf.constant(
+        >>>    [[False, False, True]])
+        >>> shift_zeros(matrix, scratched_rows_mask, scratched_cols_mask)
+
+        >>> (<tf.Tensor:
+        >>>       [[[10., 10.,  0.],
+        >>>         [ 0.,  0., 15.],
+        >>>         [ 0.,  0.,  0.]]], shape=(1, 3, 3) dtype=float16)>,
+        >>> <tf.Tensor:
+        >>>       [[False],
+        >>>        [ True],
+        >>>        [False]], shape=(3, 1), dtype=bool>,
+        >>> <tf.Tensor:
+        >>>       [[False, False,  True]], shape=(1, 3), dtype=bool>)
+
+    Args:
+        matrix:
+            The 3D-tensor [batch, rows, columns] of floats with reduced
+            values.
+        scratched_rows_mask:
+            The 2D-tensor row mask, where `True` values indicates the
+            scratched rows and `False` intact rows accordingly.
+        scratched_cols_mask:
+            The 2D-tensor column mask, where `True` values indicates the
+            scratched columns and `False` intact columns accordingly.
+
+    Returns:
+        matrix:
+            The 3D-tensor [batch, rows, columns] of floats with shifted
+            zeros.
+        scratched_rows_mask:
+            The same as input.
+        scratched_cols_mask:
+            The same as input
+    """
+    cross_mask = tf.cast(
+        tf.logical_and(scratched_rows_mask, scratched_cols_mask),
+        tf.float16,
+    )
+    inline_mask = tf.cast(
+        tf.logical_or(
+            tf.logical_and(
+                scratched_rows_mask, tf.logical_not(scratched_cols_mask)
+            ),
+            tf.logical_and(
+                tf.logical_not(scratched_rows_mask), scratched_cols_mask
+            ),
+        ),
+        tf.float16,
+    )
+    outline_mask = tf.cast(
+        tf.logical_not(
+            tf.logical_or(scratched_rows_mask, scratched_cols_mask)
+        ),
+        tf.float16,
+    )
+
+    outline_min_value = tf.reduce_min(
+        tf.math.add(
+            tf.math.multiply(
+                tf.math.subtract(ONE, outline_mask), tf.float16.max
+            ),
+            tf.math.multiply(matrix, outline_mask),
+        )
+    )
+
+    cross_matrix = tf.add(
+        tf.multiply(matrix, cross_mask),
+        tf.multiply(outline_min_value, cross_mask),
+    )
+    inline_matrix = tf.multiply(matrix, inline_mask)
+    outline_matrix = tf.subtract(
+        tf.multiply(matrix, outline_mask),
+        tf.multiply(outline_min_value, outline_mask),
+    )
+
+    return (
+        tf.math.add(cross_matrix, tf.math.add(inline_matrix, outline_matrix)),
+        scratched_rows_mask,
+        scratched_cols_mask,
+    )
