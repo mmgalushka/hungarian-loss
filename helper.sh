@@ -35,6 +35,7 @@ action_init(){
     python3 -m venv .venv
     source .venv/bin/activate
     pip3 install -r requirements.txt --no-cache
+    pre-commit install
     pre-commit autoupdate
 }
 
