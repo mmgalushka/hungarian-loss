@@ -7,4 +7,4 @@ pytest
 pytest-cov
 setuptools
 pre-commit
-tensorflow==2.5.0
+tensorflow
