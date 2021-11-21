@@ -10,7 +10,7 @@
 ![Tensorflow Badge](https://img.shields.io/badge/tensorflow-%3E%3D2.5.0-blue)
 [![Project License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/mmgalushka/hungarian-loss/blob/main/LICENSE)
 
-Computes the mean squared error between `y_true` and `y_pred` objects with prior assignment using the Hungarian algorithm.
+Computes the mean squared error between `y_true` and `y_pred` objects with prior assignment using the [Hungarian algorithm](https://en.wikipedia.org/wiki/Hungarian_algorithm).
 
 ## Installing
 
@@ -20,7 +20,7 @@ Install and update using [pip](https://pip.pypa.io/en/stable/quickstart/):
 ~$ pip install hungarian-loss
 ```
 
-Note, this package does not have extra dependencies except Tensorflow :tada:.
+Note, this package does not have extra dependencies except [Tensorflow](https://www.tensorflow.org/) :tada:.
 
 ## How to use it
 
@@ -46,7 +46,7 @@ Let's assume you are working on a deep learning model detecting multiple objects
 
 Our model predicts 2 bounding boxes where it "thinks"  kittens are located. We need to compute the difference between true and predicted bounding boxes to update model weights via back-propagation. But how to know which predicted boxes belong to which true boxes? Without the optimal assignment algorithm which consistently assigns the predicted boxes to the true boxes, we will not be able to successfully train our model.
 
-The loss function implemented in this project can help you. Intuitively you can see that predicted BBox 1 is close to the true BBox 1 and likewise predicted BBox 2 is close to the true BBox 2. the cost of assigning these pairs would be minimal compared to any other combinations. As you can see, this is a classical assignment problem. You can solve this problem using the Hungarian Algorithm. Its Python implementation can be found here. It is also used by DERT Facebook End-to-End Object Detection with Transformers model. However, if you wish to use pure tensor-based implementation this library is for you.
+The loss function implemented in this project can help you. Intuitively you can see that predicted BBox 1 is close to the true BBox 1 and likewise predicted BBox 2 is close to the true BBox 2. the cost of assigning these pairs would be minimal compared to any other combinations. As you can see, this is a classical assignment problem. You can solve this problem using the Hungarian Algorithm. Its Python implementation can be found [here](https://docs.scipy.org/doc/scipy-0.18.1/reference/generated/scipy.optimize.linear_sum_assignment.html). It is also used by [DERT Facebook End-to-End Object Detection with Transformers model](https://github.com/facebookresearch/detr). However, if you wish to use pure Tensor-based implementation this library is for you.
 
 ## How it works
 
@@ -82,9 +82,11 @@ And then compute the final error:
 
 `loss = (3.7416575 + 9.273619) / 2 = 6.50763825`
 
-In contrast, if we would use the different assignment
+In contrast, if we would use the different assignment:
 
 `loss = (2.449489 + 11.224972) / 2 = 6.8372305`
+
+As you can see the error for optimal assignment is smaller compared to the other solution(s).
 
 ## Contributing
 
