@@ -1,6 +1,6 @@
 # Hungarian Loss
 
-![hungarian-loss Logo](docs/logo.png)
+![hungarian-loss Logo](https://github.com/mmgalushka/hungarian-loss/blob/main/docs/logo.png?raw=true)
 
 
 [![Continuous Integration Status](https://github.com/mmgalushka/hungarian-loss/workflows/CI/badge.svg)](https://github.com/mmgalushka/hungarian-loss/actions)
@@ -43,7 +43,7 @@ model.compile(optimizer='adam', loss=losses, loss_weights=lossWeights)
 
 Let's assume you are working on a deep learning model detecting multiple objects on an image. For simplicity of this example, let's consider, that our model intends to detect just two objects of kittens (see example below).
 
-![Use-case Example](docs/example.png)
+![Use-case Example](https://github.com/mmgalushka/hungarian-loss/blob/main/docs/example.png?raw=true)
 
 Our model predicts 2 bounding boxes where it "thinks"  kittens are located. We need to compute the difference between true and predicted bounding boxes to update model weights via back-propagation. But how to know which predicted boxes belong to which true boxes? Without the optimal assignment algorithm which consistently assigns the predicted boxes to the true boxes, we will not be able to successfully train our model.
 

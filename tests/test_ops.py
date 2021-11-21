@@ -2,7 +2,6 @@
 Tests for a collection of supporting operations.
 """
 
-from six import print_
 import tensorflow as tf
 
 from hungarian_loss.ops import (
