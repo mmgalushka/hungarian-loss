@@ -4,14 +4,53 @@ Steps for computing Hungarian loss.
 
 import tensorflow as tf
 
-from . import ZERO, ONE
+from .const import ZERO, ONE
 from .ops import (
     count_zeros_in_rows,
     count_zeros_in_cols,
+    get_row_mask_with_min_zeros,
     get_row_mask_with_max_zeros,
+    get_col_mask_with_min_zeros,
     get_col_mask_with_max_zeros,
     expand_item_mask,
 )
+
+
+def compute_euclidean_distance(a, b):  # pylint: disable=invalid-name
+    """
+    dist = sqrt((a - b)^2) = sqrt(a^2 - 2ab.T - b^2)
+    """
+    # Example of input data, both tensors have shape=(1, 2, 4):
+    #
+    # a = [
+    #   [[1. 2. 3. 4.]
+    #    [5. 6. 7. 8.]]
+    # ]
+    #
+    # b = [
+    #   [[1. 1. 1. 1.]
+    #    [2. 2. 2. 2.]]
+    # ]
+
+    # N = a.shape[0]
+    N = len(a)  # pylint: disable=invalid-name
+    # Batch size: N = 1
+
+    a2 = tf.reshape(  # pylint: disable=invalid-name
+        tf.reduce_sum(tf.square(a), axis=2), [N, -1, 1]
+    )
+    # a2 = [[[ 30.]
+    #        [175.]]]
+
+    b2 = tf.reshape(  # pylint: disable=invalid-name
+        tf.reduce_sum(tf.square(b), axis=2), [N, 1, -1]
+    )
+    # b2 = [[[4. 16.]]]
+
+    dist = tf.sqrt(a2 - 2 * tf.matmul(a, tf.transpose(b, perm=[0, 2, 1])) + b2)
+    # dist = [[[ 3.7416575  2.4494898]
+    #          [11.224972   9.273619 ]]]
+    return tf.cast(dist, tf.float16)
 
 
 def reduce_rows(matrix: tf.Tensor) -> tf.Tensor:
@@ -19,20 +58,20 @@ def reduce_rows(matrix: tf.Tensor) -> tf.Tensor:
 
     Example:
     >>> matrix = tf.Variable(
-    >>>    [[[ 30., 25., 10.],
-    >>>      [ 15., 10., 20.],
-    >>>      [ 25., 20., 15.]]]
+    >>>    [[ 30., 25., 10.],
+    >>>     [ 15., 10., 20.],
+    >>>     [ 25., 20., 15.]]
     >>> )
     >>> reduce_rows(matrix)
 
     >>> tf.Tensor(
-    >>>     [[[20. 15.  0.]
-    >>>       [ 5.  0. 10.]
-    >>>       [10.  5.  0.]]], shape=(1, 3, 3), dtype=float16)
+    >>>     [[20. 15.  0.]
+    >>>      [ 5.  0. 10.]
+    >>>      [10.  5.  0.]], shape=(3, 3), dtype=float16)
 
     Args:
         matrix:
-            The 3D-tensor [batch, rows, columns] of floats to reduce.
+            The 2D-tensor [rows, columns] of floats to reduce.
 
     Returns:
         A new tensor with reduced values of the same shape as
@@ -40,7 +79,7 @@ def reduce_rows(matrix: tf.Tensor) -> tf.Tensor:
     """
     return tf.cast(
         tf.subtract(
-            matrix, tf.reshape(tf.reduce_min(matrix, axis=2), (-1, 1))
+            matrix, tf.reshape(tf.reduce_min(matrix, axis=1), (-1, 1))
         ),
         tf.float16,
     )
@@ -51,27 +90,27 @@ def reduce_cols(matrix: tf.Tensor) -> tf.Tensor:
 
     Example:
     >>> matrix = tf.Variable(
-    >>>    [[[ 30., 25., 10.],
-    >>>      [ 15., 10., 20.],
-    >>>      [ 25., 20., 15.]]]
+    >>>    [[ 30., 25., 10.],
+    >>>     [ 15., 10., 20.],
+    >>>     [ 25., 20., 15.]]
     >>> )
     >>> reduce_cols(matrix)
 
     >>> tf.Tensor(
-    >>>     [[[15. 15.  0.]
-    >>>       [ 0.  0. 10.]
-    >>>       [10. 10.  5.]]], shape=(1, 3, 3), dtype=float16)
+    >>>     [[15. 15.  0.]
+    >>>      [ 0.  0. 10.]
+    >>>      [10. 10.  5.]], shape=(3, 3), dtype=float16)
 
     Args:
         matrix:
-            The 3D-tensor [batch, rows, columns] of floats to reduce.
+            The 2D-tensor [rows, columns] of floats to reduce.
 
     Returns:
         A new tensor with reduced values of the same shape as
         the input tensor.
     """
     return tf.cast(
-        tf.subtract(matrix, tf.reduce_min(matrix, axis=1)), tf.float16
+        tf.subtract(matrix, tf.reduce_min(matrix, axis=0)), tf.float16
     )
 
 
@@ -81,11 +120,11 @@ def scratch_matrix(matrix: tf.Tensor) -> tf.Tensor:
 
     Example:
     >>> matrix = tf.Variable(
-    >>>    [[[15., 15.,  0.],
-    >>>      [ 0.,  0., 10.],
-    >>>      [ 5.,  5.,  0.]]]
+    >>>    [[15., 15.,  0.],
+    >>>     [ 0.,  0., 10.],
+    >>>     [ 5.,  5.,  0.]]
     >>> )
-    >>> scratch_row(matrix)
+    >>> scratch_matrix(matrix)
 
     >>> (<tf.Tensor: shape=(3, 1), dtype=bool, numpy=
     >>>     array([[False],
@@ -96,7 +135,7 @@ def scratch_matrix(matrix: tf.Tensor) -> tf.Tensor:
 
     Args:
         matrix:
-            The 3D-tensor [batch, rows, columns] of floats to scrarch.
+            The 2D-tensor [rows, columns] of floats to scrarch.
 
     Returns:
         scratched_rows_mask:
@@ -144,7 +183,7 @@ def scratch_matrix(matrix: tf.Tensor) -> tf.Tensor:
     def condition(zeros_mask, scratched_rows_mask, scratched_cols_mask):
         return tf.reduce_any(zeros_mask)
 
-    _, num_of_rows, num_of_cols = matrix.shape
+    num_of_rows, num_of_cols = matrix.shape
     _, scratched_rows_mask, scratched_cols_mask = tf.while_loop(
         condition,
         body,
@@ -202,8 +241,8 @@ def is_optimal_assignment(
     assert scratched_rows_mask.shape[0] == scratched_cols_mask.shape[1]
     n = scratched_rows_mask.shape[0]
     number_of_lines_covering_zeros = tf.add(
-        tf.reduce_sum(tf.cast(scratched_rows_mask, tf.float16)),
-        tf.reduce_sum(tf.cast(scratched_cols_mask, tf.float16)),
+        tf.reduce_sum(tf.cast(scratched_rows_mask, tf.int32)),
+        tf.reduce_sum(tf.cast(scratched_cols_mask, tf.int32)),
     )
     return tf.equal(n, number_of_lines_covering_zeros)
 
@@ -215,9 +254,9 @@ def shift_zeros(matrix, scratched_rows_mask, scratched_cols_mask):
 
         Optimal assignment:
         >>> matrix = tf.constant(
-        >>>    [[[ 30., 25., 10.],
-        >>>      [ 15., 10., 20.],
-        >>>      [ 25., 20., 15.]]], tf.float16
+        >>>    [[ 30., 25., 10.],
+        >>>     [ 15., 10., 20.],
+        >>>     [ 25., 20., 15.]], tf.float16
         >>> )
         >>> scratched_rows_mask = tf.constant(
         >>>    [[False], [True], [False]], tf.bool)
@@ -226,9 +265,9 @@ def shift_zeros(matrix, scratched_rows_mask, scratched_cols_mask):
         >>> shift_zeros(matrix, scratched_rows_mask, scratched_cols_mask)
 
         >>> (<tf.Tensor:
-        >>>       [[[10., 10.,  0.],
-        >>>         [ 0.,  0., 15.],
-        >>>         [ 0.,  0.,  0.]]], shape=(1, 3, 3) dtype=float16)>,
+        >>>       [[10., 10.,  0.],
+        >>>        [ 0.,  0., 15.],
+        >>>        [ 0.,  0.,  0.]], shape=(3, 3) dtype=float16)>,
         >>> <tf.Tensor:
         >>>       [[False],
         >>>        [ True],
@@ -238,7 +277,7 @@ def shift_zeros(matrix, scratched_rows_mask, scratched_cols_mask):
 
     Args:
         matrix:
-            The 3D-tensor [batch, rows, columns] of floats with reduced
+            The 2D-tensor [rows, columns] of floats with reduced
             values.
         scratched_rows_mask:
             The 2D-tensor row mask, where `True` values indicates the
@@ -249,7 +288,7 @@ def shift_zeros(matrix, scratched_rows_mask, scratched_cols_mask):
 
     Returns:
         matrix:
-            The 3D-tensor [batch, rows, columns] of floats with shifted
+            The 3D-tensor [rows, columns] of floats with shifted
             zeros.
         scratched_rows_mask:
             The same as input.
@@ -297,11 +336,11 @@ def shift_zeros(matrix, scratched_rows_mask, scratched_cols_mask):
         tf.multiply(outline_min_value, outline_mask),
     )
 
-    return (
+    return [
         tf.math.add(cross_matrix, tf.math.add(inline_matrix, outline_matrix)),
         scratched_rows_mask,
         scratched_cols_mask,
-    )
+    ]
 
 
 def reduce_matrix(matrix):
@@ -309,12 +348,24 @@ def reduce_matrix(matrix):
 
     Example:
         >>> matrix = tf.constant(
-        >>>    [[[ 30., 25., 10.],
-        >>>      [ 15., 10., 20.],
-        >>>      [ 25., 20., 15.]]], tf.float16
+        >>>    [[ 30., 25., 10.],
+        >>>     [ 15., 10., 20.],
+        >>>     [ 25., 20., 15.]], tf.float16
         >>> )
         >>> reduce_matrix(matrix)
 
+        >>> tf.Tensor(
+        >>>     [[10. 10.  0.]
+        >>>      [ 0.  0. 15.]
+        >>>      [ 0.  0.  0.]], shape=(3, 3), dtype=float16)
+
+    Args:
+        matrix:
+            The 2D-tensor [rows, columns] of floats to reduce.
+
+    Returns:
+        A new tensor representing the reduced matrix of the same
+        shape as the input tensor.
     """
 
     def body(matrix, scratched_rows_mask, scratched_cols_mask):
@@ -341,7 +392,7 @@ def reduce_matrix(matrix):
             is_optimal_assignment(scratched_rows_mask, scratched_cols_mask)
         )
 
-    _, num_of_rows, num_of_cols = matrix.shape
+    num_of_rows, num_of_cols = matrix.shape
     reduced_matrix, _, _ = tf.while_loop(
         condition,
         body,
@@ -353,3 +404,109 @@ def reduce_matrix(matrix):
     )
 
     return reduced_matrix
+
+
+def select_optimal_assignment_mask(reduced_matrix):
+    """Selects the optimal solution based on the reduced matrix.
+
+    Example:
+        >>> reduced_matrix = tf.constant(
+        >>>     [[10. 10.  0.]
+        >>>      [ 0.  0. 15.]
+        >>>      [ 0.  0.  0.]], shape=(3, 3), dtype=float16)
+        >>> reduce_matrix(matrix)
+
+        >>> tf.Tensor(
+        >>>     [[False False  True]
+        >>>      [ True False False]
+        >>>      [False  True False]], shape=(3, 3), dtype=bool)
+
+        Args:
+            matrix:
+                The 2D-tensor [rows, columns] of floats representing
+                the reduced matrix and used for selecting the optimal
+                solution.
+
+        Returns:
+            A new tensor representing the optimal assignment mask has
+            the same dimension as the input.
+    """
+
+    def select_based_on_row(zeros_mask, selection_mask):
+        best_row_mask = expand_item_mask(
+            get_row_mask_with_min_zeros(zeros_mask)
+        )
+        best_col_mask = expand_item_mask(
+            get_col_mask_with_max_zeros(
+                tf.logical_and(best_row_mask, zeros_mask)
+            )
+        )
+        new_selection_mask = tf.logical_or(
+            selection_mask, tf.logical_and(best_row_mask, best_col_mask)
+        )
+        new_mask = tf.logical_and(
+            zeros_mask,
+            tf.logical_not(tf.logical_or(best_row_mask, best_col_mask)),
+        )
+        return new_mask, new_selection_mask
+
+    def select_based_on_col(zeros_mask, selection_mask):
+        best_col_mask = expand_item_mask(
+            get_col_mask_with_min_zeros(zeros_mask)
+        )
+        best_row_mask = expand_item_mask(
+            get_row_mask_with_max_zeros(
+                tf.logical_and(best_col_mask, zeros_mask)
+            )
+        )
+        new_selection_mask = tf.logical_or(
+            selection_mask, tf.logical_and(best_col_mask, best_row_mask)
+        )
+        new_mask = tf.logical_and(
+            zeros_mask,
+            tf.logical_not(tf.logical_or(best_col_mask, best_row_mask)),
+        )
+        return new_mask, new_selection_mask
+
+    def body(zeros_mask, selection_mask):
+        zero_count_in_rows = tf.reduce_sum(
+            tf.cast(tf.equal(zeros_mask, True), tf.float16), axis=1
+        )
+        zero_count_in_rows = tf.where(
+            tf.equal(zero_count_in_rows, ZERO),
+            tf.float16.max,
+            zero_count_in_rows,
+        )
+        min_zero_count_in_rows = tf.reduce_min(zero_count_in_rows)
+
+        zero_count_in_cols = tf.reduce_sum(
+            tf.cast(tf.equal(zeros_mask, True), tf.float16), axis=0
+        )
+        zero_count_in_cols = tf.where(
+            tf.equal(zero_count_in_cols, ZERO),
+            tf.float16.max,
+            zero_count_in_cols,
+        )
+        min_zero_count_in_cols = tf.reduce_min(zero_count_in_cols)
+
+        return tf.cond(
+            tf.math.less(min_zero_count_in_rows, min_zero_count_in_cols),
+            true_fn=lambda: select_based_on_row(zeros_mask, selection_mask),
+            false_fn=lambda: select_based_on_col(zeros_mask, selection_mask),
+        )
+
+    def condition(
+        zeros_mask, selection_mask
+    ):  # pylint: disable=unused-argument
+        return tf.reduce_any(zeros_mask)
+
+    output = tf.while_loop(
+        condition,
+        body,
+        [
+            tf.math.equal(reduced_matrix, ZERO),
+            tf.zeros(reduced_matrix.shape, tf.bool),
+        ],
+    )
+
+    return output[1]
