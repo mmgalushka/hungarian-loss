@@ -38,17 +38,11 @@ action_init(){
     pre-commit autoupdate
 }
 
-action_run(){
-    source .venv/bin/activate
-    # python main.py
-    pre-commit install
-}
-
 action_test(){
     source .venv/bin/activate
 
     OPTS=()
-    while getopts ":m:cr" opt; do
+    while getopts ":cr" opt; do
         case $opt in
             c)
                 OPTS+=(--cov=hungarian_loss)
@@ -82,9 +76,6 @@ action_build(){
 case $1 in
     init)
         action_init
-    ;;
-    run)
-        action_run
     ;;
     test)
         action_test ${@:2}
