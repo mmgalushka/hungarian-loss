@@ -126,7 +126,7 @@ If you are not sure which parts of your code are covered by tests and which do n
 ~$ ./helper.sh test -cr
 ```
 
-After executing this command you can use for example [Coverage Gutters extension./he    ./he    ](https://marketplace.visualstudio.com/items?itemName=ryanluker.vscode-coverage-gutters) to inspect the coverage report.
+After executing this command you can use for example [Coverage Gutters extension](https://marketplace.visualstudio.com/items?itemName=ryanluker.vscode-coverage-gutters) to inspect the coverage report.
 
 ---
 
