@@ -1,6 +1,4 @@
-"""
-Tests for the Hungarian algorithm steps.
-"""
+"""Tests for the Hungarian algorithm steps."""
 
 import tensorflow as tf
 

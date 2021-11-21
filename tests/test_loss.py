@@ -1,6 +1,4 @@
-"""
-Tests for the Hungarian loss function.
-"""
+"""Tests for the Hungarian loss function."""
 
 import tensorflow as tf
 from hungarian_loss.loss import (

@@ -1,6 +1,4 @@
-"""
-Make test solving assignment tasks of different complexity.
-"""
+"""Make test solving assignment tasks of different complexity."""
 
 import tensorflow as tf
 from hungarian_loss.steps import reduce_matrix, select_optimal_assignment_mask

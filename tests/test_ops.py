@@ -1,6 +1,4 @@
-"""
-Tests for a collection of supporting operations.
-"""
+"""Tests for a collection of supporting operations."""
 
 import tensorflow as tf
 
