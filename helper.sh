@@ -40,7 +40,8 @@ action_init(){
 
 action_run(){
     source .venv/bin/activate
-    python main.py
+    # python main.py
+    pre-commit install
 }
 
 action_test(){

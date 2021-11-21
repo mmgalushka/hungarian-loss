@@ -15,7 +15,11 @@ setuptools.setup(
     name="hungarian-loss",
     author="Mykola Galushka",
     author_email="mm.galushka@gmail.com",
-    description="Package for rapid development of web-based user interfaces.",
+    description=(
+        "Package for computing the mean squared error between "
+        "`y_true` and `y_pred` objects with prior assignment "
+        "using the Hungarian algorithm."
+    ),
     long_description=get_long_description(),
     long_description_content_type="text/markdown",
     url="https://github.com/mmgalushka/hungarian-loss",
@@ -30,6 +34,7 @@ setuptools.setup(
     ],
     package_dir={"": "."},
     packages=setuptools.find_packages(where=".", exclude=["tests"]),
+    install_requires=["tensorflow>=2.5.0"],
     python_requires=">=3.6",
     use_scm_version=True,
     setup_requires=["setuptools_scm"],
