@@ -1,6 +1,4 @@
-"""
-Steps for computing Hungarian loss.
-"""
+"""Steps for computing Hungarian loss."""
 
 import tensorflow as tf
 
@@ -54,7 +52,8 @@ def compute_euclidean_distance(a, b):  # pylint: disable=invalid-name
 
 
 def reduce_rows(matrix: tf.Tensor) -> tf.Tensor:
-    """Subtracts the minimum value from each row.
+    """
+    Subtracts the minimum value from each row.
 
     Example:
     >>> matrix = tf.Variable(
@@ -86,7 +85,8 @@ def reduce_rows(matrix: tf.Tensor) -> tf.Tensor:
 
 
 def reduce_cols(matrix: tf.Tensor) -> tf.Tensor:
-    """Subtracts the minimum value from each column.
+    """
+    Subtracts the minimum value from each column.
 
     Example:
     >>> matrix = tf.Variable(
@@ -115,7 +115,8 @@ def reduce_cols(matrix: tf.Tensor) -> tf.Tensor:
 
 
 def scratch_matrix(matrix: tf.Tensor) -> tf.Tensor:
-    """Creates the mask for rows and columns which are covering all
+    """
+    Creates the mask for rows and columns which are covering all
     zeros in the matrix.
 
     Example:
@@ -200,7 +201,8 @@ def scratch_matrix(matrix: tf.Tensor) -> tf.Tensor:
 def is_optimal_assignment(
     scratched_rows_mask: tf.Tensor, scratched_cols_mask: tf.Tensor
 ) -> tf.Tensor:
-    """Test if we can achieve the optimal assignment.
+    """
+    Test if we can achieve the optimal assignment.
 
     We can achieve the optimal assignment if the combined number of
     scratched columns and rows equals to the matrix dimensions (since
@@ -248,7 +250,8 @@ def is_optimal_assignment(
 
 
 def shift_zeros(matrix, scratched_rows_mask, scratched_cols_mask):
-    """Shifts zeros in not optimal mask.
+    """
+    Shifts zeros in not optimal mask.
 
     Example:
 
@@ -344,7 +347,8 @@ def shift_zeros(matrix, scratched_rows_mask, scratched_cols_mask):
 
 
 def reduce_matrix(matrix):
-    """Reduce matrix suitable to perform the optimal assignment.
+    """
+    Reduce matrix suitable to perform the optimal assignment.
 
     Example:
         >>> matrix = tf.constant(
@@ -407,7 +411,8 @@ def reduce_matrix(matrix):
 
 
 def select_optimal_assignment_mask(reduced_matrix):
-    """Selects the optimal solution based on the reduced matrix.
+    """
+    Selects the optimal solution based on the reduced matrix.
 
     Example:
         >>> reduced_matrix = tf.constant(

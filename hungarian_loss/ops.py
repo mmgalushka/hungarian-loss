@@ -1,13 +1,12 @@
-"""
-A collection of supporting operations.
-"""
+"""A collection of supporting operations."""
 import tensorflow as tf
 
 from .const import ZERO
 
 
 def count_zeros_in_rows(zeros_mask: tf.Tensor) -> tf.Tensor:
-    """Counts a number of zero-values in each row using a zeros'-mask.
+    """
+    Counts a number of zero-values in each row using a zeros'-mask.
 
     Zeros' mask highlights the matrix cells with zero values.
 
@@ -41,7 +40,8 @@ def count_zeros_in_rows(zeros_mask: tf.Tensor) -> tf.Tensor:
 
 
 def count_zeros_in_cols(zeros_mask: tf.Tensor) -> tf.Tensor:
-    """Counts a number of zero-values in each column using a zeros'-mask.
+    """
+    Counts a number of zero-values in each column using a zeros'-mask.
 
     Zeros' mask highlights the matrix cells with zero values.
 
@@ -73,7 +73,8 @@ def count_zeros_in_cols(zeros_mask: tf.Tensor) -> tf.Tensor:
 
 
 def get_row_mask_with_min_zeros(zeros_mask: tf.Tensor) -> tf.Tensor:
-    """Returns a row mask with minimum number of zeros.
+    """
+    Returns a row mask with minimum number of zeros.
 
     Note, rows containing all zeros are excluded from the computation
     of this mask.
@@ -125,7 +126,8 @@ def get_row_mask_with_min_zeros(zeros_mask: tf.Tensor) -> tf.Tensor:
 
 
 def get_row_mask_with_max_zeros(zeros_mask: tf.Tensor) -> tf.Tensor:
-    """Returns a row mask with maximum number of zeros.
+    """
+    Returns a row mask with maximum number of zeros.
 
     Example:
         >>> zeros_mask = tf.constant(
@@ -155,7 +157,8 @@ def get_row_mask_with_max_zeros(zeros_mask: tf.Tensor) -> tf.Tensor:
 
 
 def get_col_mask_with_min_zeros(zeros_mask) -> tf.Tensor:
-    """Returns a column mask with minimum number of zeros.
+    """
+    Returns a column mask with minimum number of zeros.
 
     Example:
 
@@ -198,7 +201,8 @@ def get_col_mask_with_min_zeros(zeros_mask) -> tf.Tensor:
 
 
 def get_col_mask_with_max_zeros(zeros_mask: tf.Tensor) -> tf.Tensor:
-    """Returns a column mask with maximum number of zeros.
+    """
+    Returns a column mask with maximum number of zeros.
 
     Example:
         >>> zeros_mask = tf.constant(
@@ -225,7 +229,8 @@ def get_col_mask_with_max_zeros(zeros_mask: tf.Tensor) -> tf.Tensor:
 
 
 def expand_item_mask(item_mask: tf.Tensor) -> tf.Tensor:
-    """Expands row or column mask to for square shape
+    """
+    Expands row or column mask to for square shape
 
     Example:
 

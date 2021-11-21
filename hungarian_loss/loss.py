@@ -1,6 +1,4 @@
-"""
-The module implementing the Hungarian loss function.
-"""
+"""The module implementing the Hungarian loss function."""
 
 import tensorflow as tf
 
@@ -12,7 +10,8 @@ from .steps import (
 
 
 def compute_hungarian_loss_on_distance_matrix(dist):
-    """Computes the Hungarian loss on a distance matrix
+    """
+    Computes the Hungarian loss on a distance matrix
 
     For example, if we are detecting 10 bounding boxes on an images,
     the distance matrix will represent distances between every pair
@@ -43,7 +42,8 @@ def compute_hungarian_loss_on_distance_matrix(dist):
 
 
 def hungarian_loss(y_true, y_pred):
-    """Computes the Hungarian loss between `y_true` and `y_pred`.
+    """
+    Computes the Hungarian loss between `y_true` and `y_pred`.
 
     For example, if we are detecting 10  bounding boxes on a batch
     of 32 images, the  `y_true` and `y_pred` will represent 32 images

@@ -2,7 +2,6 @@
 
 ![hungarian-loss Logo](https://github.com/mmgalushka/hungarian-loss/blob/main/docs/logo.png?raw=true)
 
-
 [![Continuous Integration Status](https://github.com/mmgalushka/hungarian-loss/workflows/CI/badge.svg)](https://github.com/mmgalushka/hungarian-loss/actions)
 [![Code Coverage Percentage](https://codecov.io/gh/mmgalushka/hungarian-loss/branch/main/graphs/badge.svg)](https://codecov.io/gh/mmgalushka/hungarian-loss)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/31d756c1ee8b4b78b44fcfd77d7305ab)](https://www.codacy.com/gh/mmgalushka/hungarian-loss/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=mmgalushka/hungarian-loss&amp;utm_campaign=Badge_Grade)
@@ -23,7 +22,7 @@ Install and update using [pip](https://pip.pypa.io/en/stable/quickstart/):
 
 Note, this package does not have extra dependencies except Tensorflow :tada:.
 
-## How to use it?
+## How to use it
 
 The following example shows how to compute loss for the model head predicting bounding boxes.
 
@@ -39,7 +38,7 @@ model.compile(optimizer='adam', loss=losses, loss_weights=lossWeights)
 
 ```
 
-## Where to use it?
+## Where to use it
 
 Let's assume you are working on a deep learning model detecting multiple objects on an image. For simplicity of this example, let's consider, that our model intends to detect just two objects of kittens (see example below).
 
@@ -49,7 +48,7 @@ Our model predicts 2 bounding boxes where it "thinks"  kittens are located. We n
 
 The loss function implemented in this project can help you. Intuitively you can see that predicted BBox 1 is close to the true BBox 1 and likewise predicted BBox 2 is close to the true BBox 2. the cost of assigning these pairs would be minimal compared to any other combinations. As you can see, this is a classical assignment problem. You can solve this problem using the Hungarian Algorithm. Its Python implementation can be found here. It is also used by DERT Facebook End-to-End Object Detection with Transformers model. However, if you wish to use pure tensor-based implementation this library is for you.
 
-## How it works?
+## How it works
 
 To give you more insights into this implementation we will review a hypothetical example. Let define true-bounding boxes for objects T1 and T2:
 

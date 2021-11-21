@@ -1,6 +1,4 @@
-"""
-The helpful constants.
-"""
+"""The helpful constants."""
 
 import tensorflow as tf
 
