@@ -246,7 +246,7 @@ def is_optimal_assignment(
         tf.reduce_sum(tf.cast(scratched_rows_mask, tf.int32)),
         tf.reduce_sum(tf.cast(scratched_cols_mask, tf.int32)),
     )
-    return tf.equal(n, number_of_lines_covering_zeros)
+    return tf.less_equal(n, number_of_lines_covering_zeros)
 
 
 def shift_zeros(matrix, scratched_rows_mask, scratched_cols_mask):

@@ -34,7 +34,7 @@ setuptools.setup(
     ],
     package_dir={"": "."},
     packages=setuptools.find_packages(where=".", exclude=["tests"]),
-    install_requires=["tensorflow>=2.5.0"],
+    install_requires=["tensorflow>=2.4.0"],
     python_requires=">=3.6",
     use_scm_version=True,
     setup_requires=["setuptools_scm"],

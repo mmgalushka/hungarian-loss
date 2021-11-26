@@ -68,9 +68,12 @@ def test_scratch_matrix():
     )
     actual_row_mask, actual_col_mask = scratch_matrix(matrix)
     expected_row_mask = tf.constant([[False], [True], [False]], tf.bool)
-    expected_col_mask = tf.constant([[False, False, True]], tf.bool)
     assert tf.reduce_all(tf.equal(actual_row_mask, expected_row_mask))
+    expected_col_mask = tf.constant([[False, False, True]], tf.bool)
     assert tf.reduce_all(tf.equal(actual_col_mask, expected_col_mask))
+    matrix = tf.constant(
+        [[15.0, 15.0, 0.0], [0.0, 0.0, 10.0], [5.0, 5.0, 0.0]], tf.float16
+    )
 
 
 def test_is_optimal_assignment():
@@ -83,6 +86,18 @@ def test_is_optimal_assignment():
 
     rows_mask = tf.constant([[False], [True], [False]], tf.bool)
     cols_mask = tf.constant([[False, False, True]], tf.bool)
+    actual = is_optimal_assignment(rows_mask, cols_mask)
+    expected = tf.constant(False, tf.bool)
+    assert tf.equal(actual, expected)
+
+    rows_mask = tf.constant([[True], [True], [True]], tf.bool)
+    cols_mask = tf.constant([[True, True, True]], tf.bool)
+    actual = is_optimal_assignment(rows_mask, cols_mask)
+    expected = tf.constant(True, tf.bool)
+    assert tf.equal(actual, expected)
+
+    rows_mask = tf.constant([[False], [False], [False]], tf.bool)
+    cols_mask = tf.constant([[False, False, False]], tf.bool)
     actual = is_optimal_assignment(rows_mask, cols_mask)
     expected = tf.constant(False, tf.bool)
     assert tf.equal(actual, expected)
