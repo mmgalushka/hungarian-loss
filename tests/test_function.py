@@ -8,7 +8,7 @@ def test_task_1():
     """Tests optimal assignment mask on task #1."""
     matrix = tf.constant(
         [[40.0, 60.0, 15.0], [25.0, 30.0, 45.0], [55.0, 30.0, 25.0]],
-        tf.float16,
+        tf.float32,
     )
     actual_mask = select_optimal_assignment_mask(reduce_matrix(matrix))
     expected_mask = tf.constant(
@@ -22,7 +22,7 @@ def test_task_2():
     """Tests optimal assignment mask on task #2."""
     matrix = tf.constant(
         [[30.0, 25.0, 10.0], [15.0, 10.0, 20.0], [25.0, 20.0, 15.0]],
-        tf.float16,
+        tf.float32,
     )
     actual_mask = select_optimal_assignment_mask(reduce_matrix(matrix))
     expected_mask_1 = tf.constant(
@@ -49,7 +49,7 @@ def test_task_3():
             [61.0, 95.0, 21.0, 14.0, 64.0],
             [89.0, 90.0, 4.0, 5.0, 79.0],
         ],
-        tf.float16,
+        tf.float32,
     )
     actual_mask = select_optimal_assignment_mask(reduce_matrix(matrix))
     expected_mask = tf.constant(

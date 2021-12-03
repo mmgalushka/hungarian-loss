@@ -3,4 +3,4 @@
 # flake8: noqa
 # pylint: disable=unused-variable
 
-from .loss import hungarian_loss
+from .loss import HungarianLoss, hungarian_loss

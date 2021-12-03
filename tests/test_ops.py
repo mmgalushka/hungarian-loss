@@ -19,7 +19,7 @@ def test_count_zeros_in_rows():
         [[True, False, False], [True, True, False], [True, True, True]]
     )
     actual = count_zeros_in_rows(zeros_mask)
-    expected = tf.constant([[1.0], [2.0], [3.0]], tf.float16)
+    expected = tf.constant([[1.0], [2.0], [3.0]], tf.float32)
     assert tf.reduce_all(tf.equal(actual, expected))
 
 
@@ -29,7 +29,7 @@ def test_count_zeros_in_cols():
         [[True, False, False], [True, True, False], [True, True, True]]
     )
     actual = count_zeros_in_cols(zeros_mask)
-    expected = tf.constant([[3.0, 2.0, 1.0]], tf.float16)
+    expected = tf.constant([[3.0, 2.0, 1.0]], tf.float32)
     assert tf.reduce_all(tf.equal(actual, expected))
 
 

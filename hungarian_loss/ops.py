@@ -21,7 +21,7 @@ def count_zeros_in_rows(zeros_mask: tf.Tensor) -> tf.Tensor:
         >>>  tf.Tensor(
         >>>    [[1.]
         >>>    [2.]
-        >>>    [3.]], shape=(3, 1), dtype=float16)
+        >>>    [3.]], shape=(3, 1), dtype=float32)
     Args:
         zeros_mask:
             A 2D boolean tensor mask [rows, columns] for highlighting
@@ -33,7 +33,7 @@ def count_zeros_in_rows(zeros_mask: tf.Tensor) -> tf.Tensor:
     """
     return tf.reshape(
         tf.reduce_sum(
-            tf.cast(tf.equal(zeros_mask, True), dtype=tf.float16), axis=1
+            tf.cast(tf.equal(zeros_mask, True), dtype=tf.float32), axis=1
         ),
         (-1, 1),
     )
@@ -53,7 +53,7 @@ def count_zeros_in_cols(zeros_mask: tf.Tensor) -> tf.Tensor:
         >>> )
         >>> count_zeros_in_cols(zeros_mask)
 
-        >>> tf.Tensor([[3. 2. 1.]], shape=(1, 3), dtype=float16)
+        >>> tf.Tensor([[3. 2. 1.]], shape=(1, 3), dtype=float32)
 
     Args:
         zeros_mask:
@@ -66,7 +66,7 @@ def count_zeros_in_cols(zeros_mask: tf.Tensor) -> tf.Tensor:
     """
     return tf.reshape(
         tf.reduce_sum(
-            tf.cast(tf.equal(zeros_mask, True), dtype=tf.float16), axis=0
+            tf.cast(tf.equal(zeros_mask, True), dtype=tf.float32), axis=0
         ),
         (1, -1),
     )
@@ -119,7 +119,7 @@ def get_row_mask_with_min_zeros(zeros_mask: tf.Tensor) -> tf.Tensor:
     counts = count_zeros_in_rows(zeros_mask)
     # In this step, we are replacing all zero counts with max floating
     # value, since we need this to eliminate rows filled with all zeros.
-    counts = tf.where(tf.equal(counts, ZERO), tf.float16.max, counts)
+    counts = tf.where(tf.equal(counts, ZERO), tf.float32.max, counts)
     return tf.equal(
         tf.argsort(tf.argsort(counts, 0, direction="ASCENDING"), 0), 0
     )
@@ -194,7 +194,7 @@ def get_col_mask_with_min_zeros(zeros_mask) -> tf.Tensor:
     counts = count_zeros_in_cols(zeros_mask)
     # In this step, we are replacing all zero counts with max floating
     # value, since we need this to eliminate columns filled with all zeros.
-    counts = tf.where(tf.equal(counts, ZERO), tf.float16.max, counts)
+    counts = tf.where(tf.equal(counts, ZERO), tf.float32.max, counts)
     return tf.equal(
         tf.argsort(tf.argsort(counts, 1, direction="ASCENDING"), 1), 0
     )
