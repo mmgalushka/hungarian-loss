@@ -10,7 +10,7 @@
 ![Tensorflow Badge](https://img.shields.io/badge/tensorflow-%3E%3D2.5.0-blue)
 [![Project License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/mmgalushka/hungarian-loss/blob/main/LICENSE)
 
-Computes loss between two sets of entities `y_true` and `y_pred` using the optimal assignment based on the [Hungarian algorithm](https://en.wikipedia.org/wiki/Hungarian_algorithm).
+When you train a computer vision model detecting multiple objects within an image, you need to define a strategy for computing the loss between ground `y_true` truth and predicted `y_pred` sets of bounding boxes. This strategy needs to provide consistent matching between these two sets. The function implemented in this project uses a [Hungarian algorithm](https://en.wikipedia.org/wiki/Hungarian_algorithm) to determine the optimal assignments between these two sets of bounding boxes and uses it for computing the loss.
 
 ## Installing
 
