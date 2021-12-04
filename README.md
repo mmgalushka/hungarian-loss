@@ -10,7 +10,7 @@
 ![Tensorflow Badge](https://img.shields.io/badge/tensorflow-%3E%3D2.5.0-blue)
 [![Project License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/mmgalushka/hungarian-loss/blob/main/LICENSE)
 
-Computes the mean squared error between `y_true` and `y_pred` objects with prior assignment using the [Hungarian algorithm](https://en.wikipedia.org/wiki/Hungarian_algorithm).
+Computes loss between to set of entities `y_true` and `y_pred` using the optimal assignment based on the [Hungarian algorithm](https://en.wikipedia.org/wiki/Hungarian_algorithm).
 
 ## Installing
 
