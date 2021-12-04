@@ -57,22 +57,59 @@ class HungarianLoss(tf.keras.losses.Loss):
 
     def __init__(
         self,
-        slice_sizes: list = None,
-        slice_index_to_compute_assignment: int = None,
-        compute_cost_matrix_fn: object = None,
+        slice_sizes: list,
+        slice_index_to_compute_assignment: int = 0,
+        compute_cost_matrix_fn: object = compute_euclidean_distance,
         slice_losses_fn: list = None,
         slice_weights: list = None,
     ):
         super().__init__(
             reduction=tf.keras.losses.Reduction.NONE, name="hungarian_loss"
         )
+        if slice_sizes is None:
+            raise TypeError(
+                "The slice_sizes must be a <class 'list'>, but got None;"
+            )
+        if len(slice_sizes) == 0:
+            raise ValueError(
+                "The slice_sizes must be containing at least one element, "
+                "but got 0;"
+            )
+        if slice_index_to_compute_assignment >= len(slice_sizes):
+            raise ValueError(
+                "The slice_index_to_compute_assignment must be less than "
+                f"a length of the slice_sizes but got "
+                f"idx({slice_index_to_compute_assignment})>="
+                f"len({len(slice_sizes)});"
+            )
+        if slice_losses_fn is not None:
+            if len(slice_sizes) != len(slice_losses_fn):
+                raise ValueError(
+                    "A length of the slice_losses_fn must be equal to a "
+                    "length of the slice_sizes but got "
+                    f"{len(slice_sizes)}!={len(slice_losses_fn)};"
+                )
+        if slice_weights is not None:
+            if len(slice_sizes) != len(slice_weights):
+                raise ValueError(
+                    "A length of the slice_weights must be equal to a "
+                    "length of the slice_sizes but got "
+                    f"{len(slice_sizes)}!={len(slice_weights)};"
+                )
+
         self.slice_sizes = slice_sizes
         self.slice_index_to_compute_assignment = (
             slice_index_to_compute_assignment
         )
         self.compute_cost_matrix_fn = compute_cost_matrix_fn
-        self.slice_losses_fn = slice_losses_fn
-        self.slice_weights = slice_weights
+        if slice_losses_fn:
+            self.slice_losses_fn = slice_losses_fn
+        else:
+            self.slice_losses_fn = [tf.keras.losses.mse for _ in slice_sizes]
+        if slice_weights:
+            self.slice_weights = slice_weights
+        else:
+            self.slice_losses_fn = [1.0 for _ in slice_sizes]
 
     def __compute_sample_loss(self, y_true, y_pred):  # pragma: no cover
         shift = 0

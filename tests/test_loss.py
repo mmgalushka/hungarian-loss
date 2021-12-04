@@ -1,5 +1,6 @@
 """Tests for the Hungarian loss function."""
 
+import pytest
 import tensorflow as tf
 from hungarian_loss.loss import (
     hungarian_loss,
@@ -65,3 +66,26 @@ def test_hungarian_multipart_loss():
     assert actual.shape == expected.shape
     delta = tf.reduce_sum(tf.abs(actual - expected))
     assert tf.math.less(delta, EPS)
+
+    with pytest.raises(TypeError):
+        HungarianLoss(
+            None, 0, compute_euclidean_distance, [tf.keras.losses.mse], [1.0]
+        )
+    with pytest.raises(ValueError):
+        HungarianLoss(
+            [], 0, compute_euclidean_distance, [tf.keras.losses.mse], [1.0]
+        )
+    with pytest.raises(ValueError):
+        HungarianLoss(
+            [4], 1, compute_euclidean_distance, [tf.keras.losses.mse], [1.0]
+        )
+
+    HungarianLoss(
+        [4], 0, compute_euclidean_distance, [tf.keras.losses.mse], None
+    )
+    with pytest.raises(ValueError):
+        HungarianLoss([4], 0, compute_euclidean_distance, [], None)
+
+    HungarianLoss([4], 0, compute_euclidean_distance, None, [1.0])
+    with pytest.raises(ValueError):
+        HungarianLoss([4], 0, compute_euclidean_distance, None, [])
