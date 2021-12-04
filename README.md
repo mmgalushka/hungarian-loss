@@ -94,6 +94,6 @@ For information on how to set up a development environment and how to make a con
 
 ## Links
 
-  - PyPI Releases: [https://pypi.org/project/hungarian-loss/](https://pypi.org/project/hungarian-loss/)
-  - Source Code: [https://github.com/mmgalushka/hungarian-loss](https://github.com/mmgalushka/hungarian-loss/)
-  - Issue Tracker: [https://github.com/mmgalushka/hungarian-loss/issues](https://github.com/mmgalushka/hungarian-loss/)
+- PyPI Releases: [https://pypi.org/project/hungarian-loss/](https://pypi.org/project/hungarian-loss/)
+- Source Code: [https://github.com/mmgalushka/hungarian-loss](https://github.com/mmgalushka/hungarian-loss/)
+- Issue Tracker: [https://github.com/mmgalushka/hungarian-loss/issues](https://github.com/mmgalushka/hungarian-loss/)
