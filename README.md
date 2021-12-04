@@ -86,7 +86,7 @@ In contrast, if we would use the different assignment:
 
 `loss = (2.449489 + 11.224972) / 2 = 6.8372305`
 
-As you can see the error for optimal assignment is smaller compared to the other solution(s).
+As you can see the error for the optimal assignment is smaller compared to the other solution(s).
 
 ## Contributing
 
@@ -94,6 +94,6 @@ For information on how to set up a development environment and how to make a con
 
 ## Links
 
-- PyPI Releases: [https://pypi.org/project/hungarian-loss/](https://pypi.org/project/hungarian-loss/)
-- Source Code: [https://github.com/mmgalushka/hungarian-loss](https://github.com/mmgalushka/hungarian-loss/)
-- Issue Tracker: [https://github.com/mmgalushka/hungarian-loss/issues](https://github.com/mmgalushka/hungarian-loss/)
+  - PyPI Releases: [https://pypi.org/project/hungarian-loss/](https://pypi.org/project/hungarian-loss/)
+  - Source Code: [https://github.com/mmgalushka/hungarian-loss](https://github.com/mmgalushka/hungarian-loss/)
+  - Issue Tracker: [https://github.com/mmgalushka/hungarian-loss/issues](https://github.com/mmgalushka/hungarian-loss/)

@@ -25,7 +25,8 @@ def test_hungarian_loss():
         ]
     )
     actual = hungarian_loss(y_true, y_pred)
-    expected = tf.constant([3.254, 3.254], tf.float32)
+    expected = tf.constant(3.254, tf.float32)
+    assert actual.shape == expected.shape
     delta = tf.reduce_sum(tf.abs(actual - expected))
     assert tf.math.less(delta, EPS)
 
@@ -51,7 +52,8 @@ def test_hungarian_multipart_loss():
 
     loss = HungarianLoss([4], 0, compute_euclidean_distance, [rmse], [1.0])
     actual = loss.call(y_true, y_pred)
-    expected = tf.constant([3.254, 3.254], tf.float32)
+    expected = tf.constant(3.254, tf.float32)
+    assert actual.shape == expected.shape
     delta = tf.reduce_sum(tf.abs(actual - expected))
     assert tf.math.less(delta, EPS)
 
@@ -59,6 +61,7 @@ def test_hungarian_multipart_loss():
         [4], 0, compute_euclidean_distance, [tf.keras.losses.mse], [1.0]
     )
     actual = loss.call(y_true, y_pred)
-    expected = tf.constant([12.5, 12.5], tf.float32)
+    expected = tf.constant(12.5, tf.float32)
+    assert actual.shape == expected.shape
     delta = tf.reduce_sum(tf.abs(actual - expected))
     assert tf.math.less(delta, EPS)

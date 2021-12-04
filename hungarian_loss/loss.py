@@ -74,72 +74,44 @@ class HungarianLoss(tf.keras.losses.Loss):
         self.slice_losses_fn = slice_losses_fn
         self.slice_weights = slice_weights
 
-    def __compute_sample_loss(self, y_true, y_pred):
-        if self.slice_sizes:
-            shift = 0
-            v_trues, v_preds = [], []
+    def __compute_sample_loss(self, y_true, y_pred):  # pragma: no cover
+        shift = 0
+        v_trues, v_preds = [], []
 
-            for i, size in enumerate(self.slice_sizes):
-                v_true = tf.slice(
-                    tf.cast(y_true, tf.float32), [0, shift], [-1, size]
-                )
-                v_pred = tf.slice(
-                    tf.cast(y_pred, tf.float32), [0, shift], [-1, size]
-                )
-
-                if i == self.slice_index_to_compute_assignment:
-                    cost = self.compute_cost_matrix_fn(v_true, v_pred)
-                    # We need to reshape the distance matrix by removing the
-                    # `None` dimension values.
-                    n = cost.shape[1]
-                    cost = tf.reshape(cost, (n, n))
-
-                v_trues.append(v_true)
-                v_preds.append(v_pred)
-                shift += size
-
-            assignments = select_optimal_assignment_mask(reduce_matrix(cost))
-            y_true_order = tf.gather(
-                tf.where(assignments), indices=[0], axis=1
+        for i, size in enumerate(self.slice_sizes):
+            v_true = tf.slice(
+                tf.cast(y_true, tf.float32), [0, shift], [-1, size]
             )
-            y_pred_order = tf.gather(
-                tf.where(assignments), indices=[1], axis=1
+            v_pred = tf.slice(
+                tf.cast(y_pred, tf.float32), [0, shift], [-1, size]
             )
 
-            slice_losses = []
-            for loss_fn, v_true, v_pred in zip(
-                self.slice_losses_fn, v_trues, v_preds
-            ):
-                v_true_reordered = tf.gather_nd(v_true, y_true_order)
-                v_pred_reordered = tf.gather_nd(v_pred, y_pred_order)
-                slice_losses.append(
-                    tf.reduce_mean(loss_fn(v_true_reordered, v_pred_reordered))
-                )
+            if i == self.slice_index_to_compute_assignment:
+                cost = self.compute_cost_matrix_fn(v_true, v_pred)
+                # We need to reshape the distance matrix by removing the
+                # `None` dimension values.
+                n = cost.shape[1]
+                cost = tf.reshape(cost, (n, n))
 
-            return tf.reduce_mean(
-                tf.multiply(self.slice_weights, slice_losses)
+            v_trues.append(v_true)
+            v_preds.append(v_pred)
+            shift += size
+
+        assignments = select_optimal_assignment_mask(reduce_matrix(cost))
+        y_true_order = tf.gather(tf.where(assignments), indices=[0], axis=1)
+        y_pred_order = tf.gather(tf.where(assignments), indices=[1], axis=1)
+
+        slice_losses = []
+        for loss_fn, v_true, v_pred in zip(
+            self.slice_losses_fn, v_trues, v_preds
+        ):
+            v_true_reordered = tf.gather_nd(v_true, y_true_order)
+            v_pred_reordered = tf.gather_nd(v_pred, y_pred_order)
+            slice_losses.append(
+                tf.reduce_mean(loss_fn(v_true_reordered, v_pred_reordered))
             )
-        else:
-            v_true = tf.cast(y_true, tf.float32)
-            v_pred = tf.cast(y_pred, tf.float32)
 
-            cost = compute_euclidean_distance(v_true, v_pred)
-
-            # We need to reshape the distance matrix by removing the
-            # `None` dimension values.
-            n = cost.shape[1]
-            cost = tf.reshape(cost, (n, n))
-
-            return tf.reduce_mean(
-                tf.multiply(
-                    cost,
-                    tf.cast(
-                        select_optimal_assignment_mask(reduce_matrix(cost)),
-                        tf.float32,
-                    ),
-                ),
-                (0, 1),
-            )
+        return tf.reduce_mean(tf.multiply(self.slice_weights, slice_losses))
 
     def call(self, y_true, y_pred):
         """
@@ -156,9 +128,11 @@ class HungarianLoss(tf.keras.losses.Loss):
         Returns:
             The predicted loss values 1D `tensor` with shape = `[batch_size]`.
         """
-        return tf.map_fn(
-            lambda x: self.__compute_sample_loss(x[0], x[1]),
-            tf.cast(tf.stack([y_true, y_pred], 1), tf.float32),
+        return tf.reduce_mean(
+            tf.map_fn(
+                lambda x: self.__compute_sample_loss(x[0], x[1]),
+                tf.cast(tf.stack([y_true, y_pred], 1), tf.float32),
+            )
         )
 
 
@@ -200,4 +174,28 @@ def hungarian_loss(y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
     Returns:
         The predicted loss values 1D `tensor` with shape = `[batch_size]`.
     """
-    return HungarianLoss().call(y_true, y_pred)
+
+    def compute_sample_loss(v_true, v_pred):  # pragma: no cover
+        cost = compute_euclidean_distance(v_true, v_pred)
+
+        # We need to reshape the distance matrix by removing the
+        # `None` dimension values.
+        n = cost.shape[1]
+        cost = tf.reshape(cost, (n, n))
+
+        return tf.reduce_mean(
+            tf.multiply(
+                cost,
+                tf.cast(
+                    select_optimal_assignment_mask(reduce_matrix(cost)),
+                    tf.float32,
+                ),
+            )
+        )
+
+    return tf.reduce_mean(
+        tf.map_fn(
+            lambda x: compute_sample_loss(x[0], x[1]),
+            tf.cast(tf.stack([y_true, y_pred], 1), tf.float32),
+        )
+    )
