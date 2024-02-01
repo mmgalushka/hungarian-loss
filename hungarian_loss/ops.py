@@ -1,4 +1,5 @@
 """A collection of supporting operations."""
+
 import tensorflow as tf
 
 from .const import ZERO
