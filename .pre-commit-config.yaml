@@ -6,12 +6,12 @@ repos:
     -   id: end-of-file-fixer
     -   id: trailing-whitespace
 -   repo: https://github.com/psf/black
-    rev: 21.11b1
+    rev: 24.1.1
     hooks:
     -   id: black
         args: [--line-length=79]
         name: Make Black formatting
--   repo: https://gitlab.com/PyCQA/flake8
+-   repo: https://github.com/PyCQA/flake8
     rev: 3.9.2
     hooks:
     -   id: flake8

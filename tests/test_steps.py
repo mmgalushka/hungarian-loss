@@ -71,9 +71,23 @@ def test_scratch_matrix():
     assert tf.reduce_all(tf.equal(actual_row_mask, expected_row_mask))
     expected_col_mask = tf.constant([[False, False, True]], tf.bool)
     assert tf.reduce_all(tf.equal(actual_col_mask, expected_col_mask))
+
     matrix = tf.constant(
-        [[15.0, 15.0, 0.0], [0.0, 0.0, 10.0], [5.0, 5.0, 0.0]], tf.float32
+        [
+            [0.0, 5.0, 5.0, 5.0],
+            [5.0, 0.0, 10.0, 5.0],
+            [10.0, 10.0, 0.0, 15.0],
+            [10.0, 5.0, 5.0, 0.0],
+        ],
+        tf.float32,
     )
+    actual_row_mask, actual_col_mask = scratch_matrix(matrix)
+    expected_row_mask = tf.constant(
+        [[True], [False], [True], [False]], tf.bool
+    )
+    assert tf.reduce_all(tf.equal(actual_row_mask, expected_row_mask))
+    expected_col_mask = tf.constant([[False, True, False, True]], tf.bool)
+    assert tf.reduce_all(tf.equal(actual_col_mask, expected_col_mask))
 
 
 def test_is_optimal_assignment():
@@ -146,19 +160,35 @@ def test_reduce_matrix():
 
 def test_select_optimal_assignment_mask():
     """Tests the `select_optimal_assignment_mask` function."""
+    # Test scenario 1
     matrix = tf.constant(
         [[10.0, 10.0, 0.0], [0.0, 0.0, 15.0], [0.0, 0.0, 0.0]], tf.float32
     )
     actual_mask = select_optimal_assignment_mask(matrix)
-    expected_mask_1 = tf.constant(
+    expected_mask = tf.constant(
         [[False, False, True], [True, False, False], [False, True, False]],
         tf.bool,
     )
-    expected_mask_2 = tf.constant(
-        [[False, False, True], [False, True, False], [True, False, False]],
+    assert tf.reduce_all(tf.equal(actual_mask, expected_mask))
+
+    # Test scenario 2
+    matrix = tf.constant(
+        [
+            [0.0, 1.0, 1.0, 0.0],
+            [10.0, 0.0, 0.0, 10.0],
+            [10.0, 0.0, 1.0, 0.0],
+            [0.0, 1.0, 1.0, 0.0],
+        ],
+        tf.float32,
+    )
+    actual_mask = select_optimal_assignment_mask(matrix)
+    expected_mask = tf.constant(
+        [
+            [True, False, False, False],
+            [False, False, True, False],
+            [False, True, False, False],
+            [False, False, False, True],
+        ],
         tf.bool,
     )
-    assert tf.logical_or(
-        tf.reduce_all(tf.equal(actual_mask, expected_mask_1)),
-        tf.reduce_all(tf.equal(actual_mask, expected_mask_2)),
-    )
+    assert tf.reduce_all(tf.equal(actual_mask, expected_mask))
