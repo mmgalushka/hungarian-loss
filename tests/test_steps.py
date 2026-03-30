@@ -192,3 +192,65 @@ def test_select_optimal_assignment_mask():
         tf.bool,
     )
     assert tf.reduce_all(tf.equal(actual_mask, expected_mask))
+
+
+def test_reduce_matrix_all_nan_terminates():
+    """Bug 2: reduce_matrix returns finite result on all-NaN 2x2 input."""
+    nan = float("nan")
+    matrix = tf.constant([[nan, nan], [nan, nan]], tf.float32)
+    result = reduce_matrix(matrix)
+    assert tf.reduce_all(tf.math.is_finite(result))
+
+
+def test_reduce_matrix_partial_nan_terminates():
+    """Bug 2: reduce_matrix returns finite result on partial-NaN 3x3 input."""
+    nan = float("nan")
+    matrix = tf.constant(
+        [[nan, 1.0, 2.0], [3.0, nan, 1.0], [2.0, 1.0, nan]], tf.float32
+    )
+    result = reduce_matrix(matrix)
+    assert tf.reduce_all(tf.math.is_finite(result))
+
+
+def test_reduce_matrix_partial_nan_valid_assignment():
+    """Bug 2: end-to-end assignment is valid (one True per row and col) on
+    partial-NaN input."""
+    nan = float("nan")
+    matrix = tf.constant(
+        [[nan, 1.0, 2.0], [3.0, nan, 1.0], [2.0, 1.0, nan]], tf.float32
+    )
+    mask = select_optimal_assignment_mask(reduce_matrix(matrix))
+    row_counts = tf.reduce_sum(tf.cast(mask, tf.int32), axis=1)
+    col_counts = tf.reduce_sum(tf.cast(mask, tf.int32), axis=0)
+    assert tf.reduce_all(tf.equal(row_counts, 1))
+    assert tf.reduce_all(tf.equal(col_counts, 1))
+
+
+def test_compute_euclidean_distance_identical_vectors_no_nan():
+    """Bug 1a: no NaN when a == b (float32 cancellation repro, seed=0,
+    dim=16)."""
+    tf.random.set_seed(0)
+    a = tf.random.uniform((4, 16), dtype=tf.float32)
+    result = compute_euclidean_distance(a, a)
+    assert not tf.reduce_any(tf.math.is_nan(result))
+    diagonal = tf.linalg.diag_part(result)
+    assert tf.reduce_all(tf.less(diagonal, tf.constant(1e-4, tf.float32)))
+
+
+def test_compute_euclidean_distance_near_identical_no_nan():
+    """Bug 1a: no NaN when a ≈ b (near-cancellation guard)."""
+    tf.random.set_seed(0)
+    a = tf.random.uniform((4, 16), dtype=tf.float32)
+    b = a + tf.constant(1e-7, tf.float32)
+    result = compute_euclidean_distance(a, b)
+    assert not tf.reduce_any(tf.math.is_nan(result))
+
+
+def test_compute_euclidean_distance_finite_gradient_at_zero():
+    """Bug 1b: gradient is finite when distance is exactly zero."""
+    a_var = tf.Variable([[1.0, 2.0, 3.0]])
+    b_const = tf.constant([[1.0, 2.0, 3.0]])
+    with tf.GradientTape() as tape:
+        dist = compute_euclidean_distance(a_var, b_const)
+    grad = tape.gradient(dist, a_var)
+    assert tf.reduce_all(tf.math.is_finite(grad))

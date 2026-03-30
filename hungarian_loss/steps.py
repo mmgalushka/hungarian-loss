@@ -2,7 +2,7 @@
 
 import tensorflow as tf
 
-from .const import ZERO, ONE
+from .const import ZERO, ONE, EPSILON
 from .ops import (
     count_zeros_in_rows,
     count_zeros_in_cols,
@@ -50,7 +50,10 @@ def compute_euclidean_distance(
     """
     a2 = tf.reshape(tf.reduce_sum(tf.square(a), axis=1), [-1, 1])
     b2 = tf.reshape(tf.reduce_sum(tf.square(b), axis=1), [1, -1])
-    dist = tf.sqrt(a2 - 2 * tf.matmul(a, tf.transpose(b, perm=[1, 0])) + b2)
+    squared = tf.maximum(
+        a2 - 2 * tf.matmul(a, tf.transpose(b, perm=[1, 0])) + b2, 0.0
+    )
+    dist = tf.sqrt(squared + EPSILON)
     return dist
 
 
@@ -396,6 +399,11 @@ def reduce_matrix(matrix):
         A new tensor representing the reduced matrix of the same
         shape as the input tensor.
     """
+    matrix = tf.where(
+        tf.math.is_nan(matrix),
+        tf.fill(tf.shape(matrix), tf.constant(1e9, tf.float32)),
+        matrix,
+    )
 
     def body(matrix, scratched_rows_mask, scratched_cols_mask):
         new_matrix = reduce_rows(matrix)
