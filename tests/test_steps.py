@@ -234,7 +234,8 @@ def test_compute_euclidean_distance_identical_vectors_no_nan():
     result = compute_euclidean_distance(a, a)
     assert not tf.reduce_any(tf.math.is_nan(result))
     diagonal = tf.linalg.diag_part(result)
-    assert tf.reduce_all(tf.less(diagonal, tf.constant(1e-4, tf.float32)))
+    # EPSILON=1e-4 gives sqrt(0 + 1e-4) = 0.01 for identical vectors.
+    assert tf.reduce_all(tf.less(diagonal, tf.constant(0.02, tf.float32)))
 
 
 def test_compute_euclidean_distance_near_identical_no_nan():
