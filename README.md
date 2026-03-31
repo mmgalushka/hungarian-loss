@@ -10,7 +10,9 @@
 ![Tensorflow Badge](https://img.shields.io/badge/tensorflow-%3E%3D2.5.0-blue)
 [![Project License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/mmgalushka/hungarian-loss/blob/main/LICENSE)
 
-When you train a computer vision model detecting multiple objects within an image, you need to define a strategy for computing the loss between ground `y_true` truth and predicted `y_pred` sets of bounding boxes. This strategy needs to provide consistent matching between these two sets. The function implemented in this project uses a [Hungarian algorithm](https://en.wikipedia.org/wiki/Hungarian_algorithm) to determine the optimal assignments between these two sets of bounding boxes and uses it for computing the loss.
+When training a model that detects multiple objects in an image, both the ground-truth `y_true` and predicted `y_pred` tensors contain *sets* of bounding boxes — and sets have no natural order. A naive approach that matches boxes by position (first predicted box to first true box, etc.) is unstable: the model receives inconsistent gradient signals depending on the arbitrary order boxes appear in the batch, which can prevent training from converging.
+
+The correct approach is to find, for each sample, the **optimal one-to-one assignment** between the predicted boxes and the ground-truth boxes — the pairing that minimises total matching cost. This is the classic [assignment problem](https://en.wikipedia.org/wiki/Assignment_problem), and the [Hungarian algorithm](https://en.wikipedia.org/wiki/Hungarian_algorithm) solves it in polynomial time. This project provides a **pure TensorFlow implementation** of Hungarian-based loss that is fully differentiable and runs on GPU, making it suitable for end-to-end training.
 
 ## Installing
 
@@ -24,18 +26,44 @@ Note, this package does not have extra dependencies except [Tensorflow](https://
 
 ## How to use it
 
-The following example shows how to compute loss for the model head predicting bounding boxes.
+Both interfaces expect 3-D tensors of shape `(batch_size, num_objects, num_features)`. For example, `(32, 10, 4)` represents a batch of 32 images each with up to 10 objects described by 4 bounding-box coordinates.
 
-```Python
+### Simple usage — function interface
+
+Drop `hungarian_loss` directly into `model.compile` as you would any built-in Keras loss:
+
+```python
 from hungarian_loss import hungarian_loss
 
 model = ...
 
-losses = {"...": ..., "bbox": hungarian_loss}
-lossWeights = {"...": ..., "bbox": 1}
+model.compile(
+    optimizer='adam',
+    loss={"bbox": hungarian_loss},
+    loss_weights={"bbox": 1},
+)
+```
 
-model.compile(optimizer='adam', loss=losses, loss_weights=lossWeights)
+### Advanced usage — class interface
 
+Use `HungarianLoss` when your model head outputs more than just bounding-box coordinates — for example, coordinates *plus* class scores. The `slices` parameter lets you specify which parts of the feature vector are used for computing the assignment cost and which loss function applies to each part:
+
+```python
+import tensorflow as tf
+from hungarian_loss import HungarianLoss, compute_euclidean_distance
+
+loss = HungarianLoss(
+    slices=[4, 10],                        # 4 bbox coords + 10 class logits
+    slice_index_to_compute_assignment=0,   # use bbox coords for matching
+    compute_cost_matrix_fn=compute_euclidean_distance,
+    slice_losses_fn=[
+        tf.keras.losses.mse,               # bbox regression loss
+        tf.keras.losses.categorical_crossentropy,  # class loss
+    ],
+    slice_weights=[1.0, 2.0],             # relative weight of each part
+)
+
+model.compile(optimizer='adam', loss=loss)
 ```
 
 ## Where to use it
@@ -64,7 +92,7 @@ Do the same for the predicted boxes P1 and P2:
 | P1     | 1., 1., 1., 1. |
 | P2     | 2., 2., 2., 2. |
 
-et's compute the Euclidean distances between all combinations of True and Predicted bounding boxes:
+Let's compute the Euclidean distances between all combinations of True and Predicted bounding boxes:
 
 |    | P1        | P2       |
 |----|-----------|----------|
@@ -87,6 +115,20 @@ In contrast, if we would use the different assignment:
 `loss = (2.449489 + 11.224972) / 2 = 6.8372305`
 
 As you can see the error for the optimal assignment is smaller compared to the other solution(s).
+
+## When to use it (and when not to)
+
+✅ **Optimal matching.** The Hungarian algorithm finds the assignment that minimizes total matching cost, giving the model a stable and consistent training signal regardless of the order boxes appear in the batch.
+
+✅ **Fully differentiable.** Implemented in pure TensorFlow, so gradients flow through the assignment step and the model can be trained end-to-end on GPU without any NumPy or SciPy dependency.
+
+✅ **Flexible.** The `HungarianLoss` class supports mixed outputs (e.g. bounding boxes + class scores) with per-slice loss functions and weights, making it easy to adapt to different model heads.
+
+❌ **Quadratic cost.** The Hungarian algorithm runs in O(n³) time with respect to the number of objects. For a small fixed number of slots (≤ ~20) this is negligible, but for very large prediction sets it can become a training bottleneck.
+
+❌ **Fixed set size.** Both `y_true` and `y_pred` must have the same number of object slots per sample. Models that predict a variable number of objects need to pad to a maximum, which adds implementation overhead.
+
+❌ **Harder to debug.** The assignment step is opaque — if the loss behaves unexpectedly, inspecting which predicted boxes were matched to which ground-truth boxes requires extra instrumentation.
 
 ## Contributing
 

@@ -109,7 +109,7 @@ class HungarianLoss(tf.keras.losses.Loss):
         if slice_weights:
             self.slice_weights = slice_weights
         else:
-            self.slice_losses_fn = [1.0 for _ in slice_sizes]
+            self.slice_weights = [1.0 for _ in slice_sizes]
 
     def __compute_sample_loss(self, y_true, y_pred):  # pragma: no cover
         shift = 0

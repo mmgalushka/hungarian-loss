@@ -2,7 +2,7 @@
 
 import tensorflow as tf
 
-from .const import ZERO, ONE
+from .const import ZERO, ONE, EPSILON
 from .ops import (
     count_zeros_in_rows,
     count_zeros_in_cols,
@@ -50,7 +50,10 @@ def compute_euclidean_distance(
     """
     a2 = tf.reshape(tf.reduce_sum(tf.square(a), axis=1), [-1, 1])
     b2 = tf.reshape(tf.reduce_sum(tf.square(b), axis=1), [1, -1])
-    dist = tf.sqrt(a2 - 2 * tf.matmul(a, tf.transpose(b, perm=[1, 0])) + b2)
+    squared = tf.maximum(
+        a2 - 2 * tf.matmul(a, tf.transpose(b, perm=[1, 0])) + b2, 0.0
+    )
+    dist = tf.sqrt(squared + EPSILON)
     return dist
 
 
@@ -396,6 +399,11 @@ def reduce_matrix(matrix):
         A new tensor representing the reduced matrix of the same
         shape as the input tensor.
     """
+    matrix = tf.where(
+        tf.math.is_nan(matrix),
+        tf.fill(tf.shape(matrix), tf.constant(1e9, tf.float32)),
+        matrix,
+    )
 
     def body(matrix, scratched_rows_mask, scratched_cols_mask):
         new_matrix = reduce_rows(matrix)
@@ -466,9 +474,17 @@ def select_optimal_assignment_mask(reduced_matrix):
         best_row_mask = expand_item_mask(
             get_row_mask_with_min_zeros(zeros_mask)
         )
+        cols_in_row = tf.reduce_any(
+            tf.logical_and(best_row_mask, zeros_mask), axis=0, keepdims=True
+        )
+        col_counts = count_zeros_in_cols(zeros_mask)
+        col_counts = tf.where(cols_in_row, col_counts, ZERO)
         best_col_mask = expand_item_mask(
-            get_col_mask_with_max_zeros(
-                tf.logical_and(best_row_mask, zeros_mask)
+            tf.equal(
+                tf.argsort(
+                    tf.argsort(col_counts, 1, direction="DESCENDING"), 1
+                ),
+                0,
             )
         )
         new_selection_mask = tf.logical_or(
@@ -484,9 +500,17 @@ def select_optimal_assignment_mask(reduced_matrix):
         best_col_mask = expand_item_mask(
             get_col_mask_with_min_zeros(zeros_mask)
         )
+        rows_in_col = tf.reduce_any(
+            tf.logical_and(best_col_mask, zeros_mask), axis=1, keepdims=True
+        )
+        row_counts = count_zeros_in_rows(zeros_mask)
+        row_counts = tf.where(rows_in_col, row_counts, ZERO)
         best_row_mask = expand_item_mask(
-            get_row_mask_with_max_zeros(
-                tf.logical_and(best_col_mask, zeros_mask)
+            tf.equal(
+                tf.argsort(
+                    tf.argsort(row_counts, 0, direction="DESCENDING"), 0
+                ),
+                0,
             )
         )
         new_selection_mask = tf.logical_or(
