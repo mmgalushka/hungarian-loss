@@ -1,5 +1,18 @@
 # Hungarian Loss
 
+> **⚠️ This project is archived and no longer maintained. Do not use it for real training.**
+>
+> The solver in this package is a greedy approximation of the Hungarian algorithm, not an exact implementation. In my tests against brute-force search on random cost matrices:
+>
+> - For 4 or more objects, roughly 7–27% of matrices produced an **invalid assignment**: some ground-truth objects were never matched to a prediction, so they silently contributed nothing to the loss. No error is raised.
+> - It is slow and unstable at larger sizes: about 0.5 s per batch of 32 at 15 objects, a segfault at 20 objects, and no result after 2 minutes at 50 objects.
+> - Only square cost matrices are supported (equal numbers of true and predicted objects).
+> - The "Advanced usage" example below uses `slices=`, but the actual parameter is `slice_sizes`.
+>
+> When the assignment was valid it was always optimal, so the code works for very small problems (about 3 objects), but I cannot recommend it beyond that.
+>
+> **Use instead:** [`scipy.optimize.linear_sum_assignment`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linear_sum_assignment.html), which is exact, fast and supports rectangular matrices. This is also what [DETR](https://github.com/facebookresearch/detr) uses. In TensorFlow you can call it from `tf.numpy_function` and compute the loss on the matched pairs; gradients flow through the matched values, which is the same as in this package.
+
 ![hungarian-loss Logo](https://github.com/mmgalushka/hungarian-loss/blob/main/docs/logo.png?raw=true)
 
 [![Continuous Integration Status](https://github.com/mmgalushka/hungarian-loss/workflows/CI/badge.svg)](https://github.com/mmgalushka/hungarian-loss/actions)
