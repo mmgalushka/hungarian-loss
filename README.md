@@ -1,10 +1,21 @@
 # Hungarian Loss
 
+> **⚠️ This project is archived and no longer maintained. Do not use it for real training.**
+>
+> The solver in this package is a greedy approximation of the Hungarian algorithm, not an exact implementation. In my tests against brute-force search on random cost matrices:
+>
+> - For 4 or more objects, roughly 7–27% of matrices produced an **invalid assignment**: some ground-truth objects were never matched to a prediction, so they silently contributed nothing to the loss. No error is raised.
+> - It is slow and unstable at larger sizes: about 0.5 s per batch of 32 at 15 objects, a segfault at 20 objects, and no result after 2 minutes at 50 objects.
+> - Only square cost matrices are supported (equal numbers of true and predicted objects).
+> - The "Advanced usage" example below uses `slices=`, but the actual parameter is `slice_sizes`.
+>
+> When the assignment was valid it was always optimal, so the code works for very small problems (about 3 objects), but I cannot recommend it beyond that.
+>
+> **Use instead:** [`scipy.optimize.linear_sum_assignment`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linear_sum_assignment.html), which is exact, fast and supports rectangular matrices. This is also what [DETR](https://github.com/facebookresearch/detr) uses. In TensorFlow you can call it from `tf.numpy_function` and compute the loss on the matched pairs; gradients flow through the matched values, which is the same as in this package.
+
 ![hungarian-loss Logo](https://github.com/mmgalushka/hungarian-loss/blob/main/docs/logo.png?raw=true)
 
 [![Continuous Integration Status](https://github.com/mmgalushka/hungarian-loss/workflows/CI/badge.svg)](https://github.com/mmgalushka/hungarian-loss/actions)
-[![Code Coverage Percentage](https://codecov.io/gh/mmgalushka/hungarian-loss/branch/main/graphs/badge.svg)](https://codecov.io/gh/mmgalushka/hungarian-loss)
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/31d756c1ee8b4b78b44fcfd77d7305ab)](https://www.codacy.com/gh/mmgalushka/hungarian-loss/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=mmgalushka/hungarian-loss&amp;utm_campaign=Badge_Grade)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 ![Python Badge](https://img.shields.io/badge/Python-%3E%3D3.6-blue)
 ![Tensorflow Badge](https://img.shields.io/badge/tensorflow-%3E%3D2.5.0-blue)
